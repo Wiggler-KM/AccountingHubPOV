@@ -1,0 +1,3492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AccountingHub — Financial Rule Engine & Automation Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  background: #F8F9FA;
+  color: #1E293B;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+#sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: #1E293B;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: #2563EB;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sidebar-logo-text { color: #fff; }
+.sidebar-logo-text .brand { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.sidebar-logo-text .tagline { font-size: 10px; color: #94A3B8; margin-top: 1px; }
+
+.sidebar-section-label {
+  padding: 20px 16px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748B;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  color: #94A3B8;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 1px 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: #E2E8F0; }
+.nav-item.active { background: rgba(37,99,235,0.2); color: #60A5FA; }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: #2563EB;
+  border-radius: 0 3px 3px 0;
+}
+.nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: #EF4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-footer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  color: #64748B;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 12.5px;
+  transition: all 0.15s;
+}
+.sidebar-footer-item:hover { background: rgba(255,255,255,0.06); color: #94A3B8; }
+
+/* ============================================================
+   MAIN WRAPPER
+   ============================================================ */
+#main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============================================================
+   TOP HEADER
+   ============================================================ */
+#header {
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  z-index: 50;
+  flex-shrink: 0;
+}
+.header-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748B; }
+.header-breadcrumb .current { color: #1E293B; font-weight: 600; }
+.header-spacer { flex: 1; }
+.header-search {
+  display: flex;
+  align-items: center;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0 12px;
+  gap: 8px;
+  width: 260px;
+}
+.header-search input {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: #1E293B;
+  padding: 7px 0;
+  width: 100%;
+}
+.header-search input::placeholder { color: #94A3B8; }
+
+.header-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: #64748B;
+  transition: all 0.15s;
+  position: relative;
+}
+.header-btn:hover { background: #F1F5F9; border-color: #CBD5E1; }
+
+.notif-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #EF4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.user-menu:hover { background: #F8F9FA; }
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.user-name { font-size: 13px; font-weight: 600; color: #1E293B; }
+.user-role { font-size: 10.5px; color: #64748B; }
+
+/* Notification dropdown */
+.notif-dropdown {
+  position: absolute;
+  top: 52px;
+  right: 180px;
+  width: 340px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+  z-index: 200;
+  display: none;
+}
+.notif-dropdown.show { display: block; }
+.notif-header { padding: 14px 16px; border-bottom: 1px solid #F1F5F9; display: flex; align-items: center; justify-content: space-between; }
+.notif-header span { font-size: 13px; font-weight: 700; color: #1E293B; }
+.notif-mark-all { font-size: 11.5px; color: #2563EB; cursor: pointer; }
+.notif-item { padding: 12px 16px; border-bottom: 1px solid #F8F9FA; display: flex; gap: 12px; cursor: pointer; transition: background 0.1s; }
+.notif-item:hover { background: #F8F9FA; }
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.notif-icon.warning { background: #FEF3C7; }
+.notif-icon.error { background: #FEE2E2; }
+.notif-icon.info { background: #DBEAFE; }
+.notif-text .title { font-size: 12.5px; font-weight: 600; color: #1E293B; }
+.notif-text .desc { font-size: 11.5px; color: #64748B; margin-top: 2px; }
+.notif-text .time { font-size: 10.5px; color: #94A3B8; margin-top: 3px; }
+
+/* ============================================================
+   CONTENT AREA
+   ============================================================ */
+#content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ============================================================
+   SECTION PAGES
+   ============================================================ */
+.section-page { display: none; }
+.section-page.active { display: block; }
+
+/* ============================================================
+   COMMON COMPONENTS
+   ============================================================ */
+.page-title { font-size: 22px; font-weight: 700; color: #1E293B; letter-spacing: -0.3px; }
+.page-subtitle { font-size: 13px; color: #64748B; margin-top: 3px; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.page-header-left {}
+.page-header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn-primary { background: #2563EB; color: #fff; }
+.btn-primary:hover { background: #1D4ED8; }
+.btn-secondary { background: #fff; color: #1E293B; border: 1px solid #E2E8F0; }
+.btn-secondary:hover { background: #F8F9FA; border-color: #CBD5E1; }
+.btn-success { background: #10B981; color: #fff; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: #EF4444; color: #fff; }
+.btn-danger:hover { background: #DC2626; }
+.btn-warning { background: #F59E0B; color: #fff; }
+.btn-warning:hover { background: #D97706; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 5px; }
+.btn-icon { padding: 7px; }
+
+/* Cards */
+.card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 700; color: #1E293B; }
+.card-subtitle { font-size: 12px; color: #64748B; margin-top: 2px; }
+.card-body { padding: 20px; }
+
+/* KPI Cards */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+}
+.kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+}
+.kpi-card.blue::before { background: #2563EB; }
+.kpi-card.green::before { background: #10B981; }
+.kpi-card.purple::before { background: #7C3AED; }
+.kpi-card.red::before { background: #EF4444; }
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+.kpi-card.blue .kpi-icon { background: #DBEAFE; }
+.kpi-card.green .kpi-icon { background: #D1FAE5; }
+.kpi-card.purple .kpi-icon { background: #EDE9FE; }
+.kpi-card.red .kpi-icon { background: #FEE2E2; }
+.kpi-value { font-size: 28px; font-weight: 800; color: #1E293B; letter-spacing: -0.5px; line-height: 1; }
+.kpi-label { font-size: 12.5px; color: #64748B; margin-top: 4px; font-weight: 500; }
+.kpi-change { font-size: 11.5px; margin-top: 8px; display: flex; align-items: center; gap: 3px; }
+.kpi-change.up { color: #10B981; }
+.kpi-change.down { color: #EF4444; }
+.kpi-change.neutral { color: #64748B; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.badge-green { background: #D1FAE5; color: #065F46; }
+.badge-green::before { background: #10B981; }
+.badge-yellow { background: #FEF3C7; color: #92400E; }
+.badge-yellow::before { background: #F59E0B; }
+.badge-red { background: #FEE2E2; color: #991B1B; }
+.badge-red::before { background: #EF4444; }
+.badge-blue { background: #DBEAFE; color: #1E40AF; }
+.badge-blue::before { background: #2563EB; }
+.badge-gray { background: #F1F5F9; color: #475569; }
+.badge-gray::before { background: #94A3B8; }
+.badge-purple { background: #EDE9FE; color: #5B21B6; }
+.badge-purple::before { background: #7C3AED; }
+.badge-orange { background: #FEF3C7; color: #92400E; }
+.badge-orange::before { background: #F97316; }
+
+/* Type badges (no dot) */
+.type-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.type-je { background: #DBEAFE; color: #1E40AF; }
+.type-tx { background: #EDE9FE; color: #5B21B6; }
+.type-va { background: #D1FAE5; color: #065F46; }
+.type-sl { background: #FEF3C7; color: #92400E; }
+
+/* Tables */
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #F8F9FA;
+  border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+th:first-child { border-radius: 8px 0 0 0; }
+th:last-child { border-radius: 0 8px 0 0; }
+td { padding: 11px 14px; border-bottom: 1px solid #F1F5F9; color: #1E293B; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #F8FAFF; }
+
+/* Sub-tabs */
+.subtabs {
+  display: flex;
+  gap: 2px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+.subtab {
+  padding: 7px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.subtab:hover { color: #1E293B; }
+.subtab.active { background: #fff; color: #1E293B; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.subtab-content { display: none; }
+.subtab-content.active { display: block; }
+
+/* Grid layouts */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+/* Charts */
+.chart-container { position: relative; }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+/* Form elements */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12.5px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.form-label .required { color: #EF4444; margin-left: 2px; }
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1E293B;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-control::placeholder { color: #94A3B8; }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.form-section {
+  background: #F8F9FA;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.form-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Toggle switch */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.toggle-label { font-size: 13px; font-weight: 500; color: #374151; }
+.toggle-desc { font-size: 11.5px; color: #64748B; margin-top: 1px; }
+.toggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #D1D5DB;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle input:checked + .toggle-slider { background: #2563EB; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* Progress bar */
+.progress-bar-container { background: #F1F5F9; border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.progress-bar.blue { background: #2563EB; }
+.progress-bar.green { background: #10B981; }
+.progress-bar.yellow { background: #F59E0B; }
+.progress-bar.red { background: #EF4444; }
+
+/* Search/filter bar */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+.search-input-wrap .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  font-size: 14px;
+}
+.search-input-wrap input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-input-wrap input:focus { border-color: #2563EB; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover { background: #F1F5F9; }
+.page-btn.active { background: #2563EB; color: #fff; border-color: #2563EB; }
+.page-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Activity feed */
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.activity-dot.green { background: #10B981; }
+.activity-dot.blue { background: #2563EB; }
+.activity-dot.yellow { background: #F59E0B; }
+.activity-dot.red { background: #EF4444; }
+.activity-dot.purple { background: #7C3AED; }
+.activity-content .title { font-size: 13px; font-weight: 600; color: #1E293B; }
+.activity-content .desc { font-size: 12px; color: #64748B; margin-top: 2px; }
+.activity-content .time { font-size: 11px; color: #94A3B8; margin-top: 3px; }
+
+/* System health */
+.health-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #F8F9FA;
+  margin-bottom: 6px;
+}
+.health-item:last-child { margin-bottom: 0; }
+.health-name { font-size: 13px; font-weight: 500; color: #1E293B; }
+.health-detail { font-size: 11.5px; color: #64748B; margin-top: 1px; }
+
+/* ============================================================
+   SECTION: RULE ENGINE
+   ============================================================ */
+.condition-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.condition-connector {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563EB;
+  background: #DBEAFE;
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin: 4px 0;
+  width: fit-content;
+}
+.condition-row select, .condition-row input {
+  padding: 6px 10px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 12.5px;
+  outline: none;
+  color: #1E293B;
+}
+.condition-row select { flex: 1; }
+.condition-row .cond-delete { cursor: pointer; color: #EF4444; font-size: 16px; padding: 4px; border-radius: 4px; }
+.condition-row .cond-delete:hover { background: #FEE2E2; }
+
+.action-row {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+.action-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.action-row-title { font-size: 12.5px; font-weight: 700; color: #374151; }
+
+/* Deployment columns */
+.deploy-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+.deploy-env-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+}
+.deploy-env-name { font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
+.deploy-env-stats { font-size: 12.5px; color: #64748B; margin-top: 12px; }
+.deploy-env-stat { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #F1F5F9; }
+.deploy-env-stat:last-child { border-bottom: none; }
+
+/* ============================================================
+   SECTION: DATA INGESTION
+   ============================================================ */
+.source-category { margin-bottom: 20px; }
+.source-category-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  margin-bottom: 10px;
+}
+.source-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.source-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+  transition: box-shadow 0.15s;
+}
+.source-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
+.source-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.source-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.source-name { font-size: 13.5px; font-weight: 700; color: #1E293B; margin-top: 2px; }
+.source-meta { font-size: 11.5px; color: #64748B; }
+.source-stat { display: flex; justify-content: space-between; font-size: 11.5px; color: #64748B; padding: 3px 0; }
+.source-actions { display: flex; gap: 6px; margin-top: 10px; }
+
+/* Data quality bar */
+.dq-bar {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin: 8px 0;
+}
+.dq-segment { height: 100%; }
+
+/* ============================================================
+   SECTION: REPORTS
+   ============================================================ */
+.date-range-picker {
+  display: flex;
+  gap: 4px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 8px;
+}
+.drp-btn {
+  padding: 6px 14px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #64748B;
+  border: none;
+  background: none;
+  transition: all 0.15s;
+}
+.drp-btn:hover { color: #1E293B; }
+.drp-btn.active { background: #fff; color: #1E293B; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+/* ============================================================
+   SECTION: EXPORT
+   ============================================================ */
+.dest-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.dest-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px;
+}
+.dest-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dest-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.dest-name { font-size: 13.5px; font-weight: 700; color: #1E293B; }
+.dest-meta { font-size: 11.5px; color: #64748B; }
+
+/* ============================================================
+   SLIDE-IN PANEL (Modal)
+   ============================================================ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.4);
+  z-index: 300;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+.overlay.show { display: block; }
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: -700px;
+  width: 680px;
+  height: 100vh;
+  background: #fff;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-panel.show { right: 0; }
+.slide-panel-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.slide-panel-title { font-size: 17px; font-weight: 700; color: #1E293B; }
+.slide-panel-body { flex: 1; overflow-y: auto; padding: 24px; }
+.slide-panel-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  background: #F8F9FA;
+}
+.close-btn { font-size: 20px; color: #94A3B8; cursor: pointer; line-height: 1; padding: 4px; border-radius: 4px; }
+.close-btn:hover { color: #1E293B; background: #F1F5F9; }
+
+/* ============================================================
+   MISC UTILITIES
+   ============================================================ */
+.text-sm { font-size: 12px; }
+.text-xs { font-size: 11px; }
+.text-muted { color: #64748B; }
+.text-success { color: #10B981; }
+.text-danger { color: #EF4444; }
+.text-warning { color: #F59E0B; }
+.text-primary { color: #2563EB; }
+.font-mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.w-full { width: 100%; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px 20px; }
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-text { font-size: 14px; font-weight: 600; color: #374151; }
+.empty-state-sub { font-size: 12.5px; color: #94A3B8; margin-top: 4px; }
+
+/* Tooltip-style sub text in cells */
+.cell-main { font-size: 13px; font-weight: 600; color: #1E293B; }
+.cell-sub { font-size: 11.5px; color: #64748B; margin-top: 1px; }
+
+/* Divider */
+.divider { border: none; border-top: 1px solid #E2E8F0; margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SIDEBAR
+     ============================================================ -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">AH</div>
+    <div class="sidebar-logo-text">
+      <div class="brand">AccountingHub</div>
+      <div class="tagline">Financial Automation Platform</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section-label">Main Navigation</div>
+
+  <div class="nav-item active" onclick="navigate('dashboard')">
+    <span class="nav-icon">📊</span>
+    <span>Dashboard</span>
+  </div>
+  <div class="nav-item" onclick="navigate('rules')">
+    <span class="nav-icon">⚙️</span>
+    <span>Rule Engine</span>
+    <span class="nav-badge">47</span>
+  </div>
+  <div class="nav-item" onclick="navigate('ingestion')">
+    <span class="nav-icon">🔄</span>
+    <span>Data Ingestion</span>
+  </div>
+  <div class="nav-item" onclick="navigate('reports')">
+    <span class="nav-icon">📈</span>
+    <span>Reports &amp; Visualization</span>
+  </div>
+  <div class="nav-item" onclick="navigate('export')">
+    <span class="nav-icon">📤</span>
+    <span>Export &amp; Integration</span>
+  </div>
+
+  <div class="sidebar-section-label">Administration</div>
+  <div class="nav-item" onclick="navigate('settings')">
+    <span class="nav-icon">🔧</span>
+    <span>Configuration</span>
+  </div>
+  <div class="nav-item" onclick="navigate('users')">
+    <span class="nav-icon">👥</span>
+    <span>Users &amp; Roles</span>
+  </div>
+  <div class="nav-item" onclick="navigate('audit')">
+    <span class="nav-icon">🛡️</span>
+    <span>Audit &amp; Compliance</span>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-item">
+      <span>❓</span>
+      <span>Help &amp; Documentation</span>
+    </div>
+    <div class="sidebar-footer-item">
+      <span>⬆️</span>
+      <span>v3.4.2 — Release Notes</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================
+     MAIN WRAPPER
+     ============================================================ -->
+<div id="main-wrapper">
+
+  <!-- TOP HEADER -->
+  <header id="header">
+    <div class="header-breadcrumb">
+      <span>AccountingHub</span>
+      <span style="color:#CBD5E1">›</span>
+      <span class="current" id="header-section-name">Dashboard</span>
+    </div>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-search">
+      <span style="color:#94A3B8; font-size:14px;">🔍</span>
+      <input type="text" placeholder="Search rules, sources, reports…">
+    </div>
+
+    <div class="header-btn" onclick="toggleNotifications()" id="notif-btn" style="position:relative;">
+      🔔
+      <div class="notif-dot"></div>
+    </div>
+
+    <div class="header-btn">⚡</div>
+
+    <div class="user-menu">
+      <div class="user-avatar">SR</div>
+      <div>
+        <div class="user-name">Sarah Reynolds</div>
+        <div class="user-role">Controller · Finance</div>
+      </div>
+      <span style="font-size:11px; color:#94A3B8; margin-left:4px;">▾</span>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-header">
+        <span>Notifications</span>
+        <span class="notif-mark-all">Mark all as read</span>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon warning">⚠️</div>
+        <div class="notif-text">
+          <div class="title">Validation Rule Exception Detected</div>
+          <div class="desc">Rule "Intercompany Elimination" flagged 3 mismatches in period close batch</div>
+          <div class="time">8 minutes ago</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon error">❌</div>
+        <div class="notif-text">
+          <div class="title">Pipeline Failure: Microsoft Dynamics</div>
+          <div class="desc">Data ingestion failed — connection timeout after 30s. Retry scheduled in 15 min.</div>
+          <div class="time">42 minutes ago</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon info">ℹ️</div>
+        <div class="notif-text">
+          <div class="title">Deployment to Production Complete</div>
+          <div class="desc">"Revenue Recognition - ASC606 v2.3" successfully deployed by J. Martinez</div>
+          <div class="time">2 hours ago</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main id="content">
+
+    <!-- ============================================================
+         SECTION 1: DASHBOARD
+         ============================================================ -->
+    <div id="section-dashboard" class="section-page active">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Financial Operations Dashboard</div>
+          <div class="page-subtitle">Real-time overview of rule execution, data pipelines, and system health</div>
+        </div>
+        <div class="page-header-right">
+          <span style="font-size:12px; color:#64748B;">Period Close: Q1 2026</span>
+          <span class="badge badge-green">On Track</span>
+          <button class="btn btn-secondary btn-sm">↻ Refresh</button>
+          <button class="btn btn-primary btn-sm">+ Quick Rule</button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-icon">⚙️</div>
+          <div class="kpi-value">47</div>
+          <div class="kpi-label">Active Rules</div>
+          <div class="kpi-change up">↑ 3 new this week</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-icon">🔌</div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-label">Data Sources Connected</div>
+          <div class="kpi-change neutral">1 configuring, 1 warning</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-icon">📒</div>
+          <div class="kpi-value">24,831</div>
+          <div class="kpi-label">Journal Entries Processed Today</div>
+          <div class="kpi-change up">↑ 12.4% vs yesterday</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-icon">⚠️</div>
+          <div class="kpi-value">3</div>
+          <div class="kpi-label">Errors / Exceptions</div>
+          <div class="kpi-change down">↑ 2 since last check</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="chart-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Journal Entry Processing Volume</div>
+              <div class="card-subtitle">Last 30 days — daily totals</div>
+            </div>
+            <select class="form-control" style="width:auto; font-size:12px; padding:4px 8px;">
+              <option>Last 30 Days</option>
+              <option>Last 7 Days</option>
+              <option>Last Quarter</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-je-volume"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Rule Execution by Type</div>
+              <div class="card-subtitle">Executions count this month</div>
+            </div>
+            <span class="badge badge-blue">Live</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-rule-type"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity + Health -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Activity</div>
+            <span class="text-sm text-primary" style="cursor:pointer;">View All →</span>
+          </div>
+          <div class="card-body" style="padding-top:8px;">
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div class="activity-content">
+                <div class="title">Rule Deployed to Production</div>
+                <div class="desc">"Revenue Recognition — ASC606 v2.3" deployed by J. Martinez</div>
+                <div class="time">Today, 09:14 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot blue"></div>
+              <div class="activity-content">
+                <div class="title">Data Ingestion Completed</div>
+                <div class="desc">SAP S/4HANA — 18,432 GL transactions loaded successfully</div>
+                <div class="time">Today, 08:55 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot purple"></div>
+              <div class="activity-content">
+                <div class="title">Batch Export Completed</div>
+                <div class="desc">Snowflake DW Export — 94,201 records, 2m 18s duration</div>
+                <div class="time">Today, 08:30 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot yellow"></div>
+              <div class="activity-content">
+                <div class="title">Rule Submitted for Review</div>
+                <div class="desc">"FX Revaluation — IFRS 21 Compliance" pending approval by T. Nguyen</div>
+                <div class="time">Today, 07:52 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot red"></div>
+              <div class="activity-content">
+                <div class="title">Pipeline Failed — Microsoft Dynamics</div>
+                <div class="desc">Connection timeout after 30s. 0 records loaded. Retry scheduled.</div>
+                <div class="time">Today, 07:18 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div class="activity-content">
+                <div class="title">Validation Rule Passed</div>
+                <div class="desc">"Balance Sheet Integrity Check" — 12,400 entries validated, 0 exceptions</div>
+                <div class="time">Yesterday, 11:59 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot blue"></div>
+              <div class="activity-content">
+                <div class="title">New Rule Created</div>
+                <div class="desc">"Lease Liability Amortization — ASC842" created by M. Patel (Draft)</div>
+                <div class="time">Yesterday, 04:33 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div class="activity-content">
+                <div class="title">Regulatory Export Completed</div>
+                <div class="desc">XBRL iXBRL filing package generated for SEC 10-Q submission</div>
+                <div class="time">Yesterday, 02:15 PM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">System Health</div>
+            <span class="badge badge-green">All Critical Systems OK</span>
+          </div>
+          <div class="card-body" style="padding-top:8px;">
+            <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin-bottom:8px; padding:0 4px;">ERP Systems</div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">SAP S/4HANA</div>
+                <div class="health-detail">Last sync: 8 min ago · 18,432 records</div>
+              </div>
+              <span class="badge badge-green">Connected</span>
+            </div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Oracle ERP Cloud</div>
+                <div class="health-detail">Last sync: 22 min ago · 7,841 records</div>
+              </div>
+              <span class="badge badge-green">Connected</span>
+            </div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Microsoft Dynamics 365</div>
+                <div class="health-detail">Connection timeout · Retry in 8 min</div>
+              </div>
+              <span class="badge badge-yellow">Warning</span>
+            </div>
+            <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin:12px 0 8px; padding:0 4px;">Data Warehouses</div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Snowflake</div>
+                <div class="health-detail">Last export: 1h 30m ago · Query time: 2.3s</div>
+              </div>
+              <span class="badge badge-green">Connected</span>
+            </div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Databricks Delta Lake</div>
+                <div class="health-detail">Last sync: 45 min ago · Cluster: Active</div>
+              </div>
+              <span class="badge badge-green">Connected</span>
+            </div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">BigQuery</div>
+                <div class="health-detail">API credentials setup in progress</div>
+              </div>
+              <span class="badge badge-blue">Configuring</span>
+            </div>
+            <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin:12px 0 8px; padding:0 4px;">CRM / Revenue</div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Salesforce Revenue Cloud</div>
+                <div class="health-detail">Last sync: 15 min ago · 3,204 opportunities</div>
+              </div>
+              <span class="badge badge-green">Connected</span>
+            </div>
+            <div class="health-item">
+              <div>
+                <div class="health-name">Payment Hub</div>
+                <div class="health-detail">API key expired — action required</div>
+              </div>
+              <span class="badge badge-red">Disconnected</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END DASHBOARD -->
+
+    <!-- ============================================================
+         SECTION 2: RULE ENGINE
+         ============================================================ -->
+    <div id="section-rules" class="section-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Rule Engine</div>
+          <div class="page-subtitle">Manage accounting rules, transformations, and validation logic</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary btn-sm">📋 Import Rules</button>
+          <button class="btn btn-primary btn-sm" onclick="openRulePanel()">+ New Rule</button>
+        </div>
+      </div>
+
+      <div class="subtabs" id="rule-subtabs">
+        <div class="subtab active" onclick="switchSubTab('rules','library')">📚 Library</div>
+        <div class="subtab" onclick="switchSubTab('rules','builder')">🔨 Builder</div>
+        <div class="subtab" onclick="switchSubTab('rules','deployment')">🚀 Deployment</div>
+        <div class="subtab" onclick="switchSubTab('rules','history')">📜 History</div>
+      </div>
+
+      <!-- LIBRARY TAB -->
+      <div id="rules-library" class="subtab-content active">
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search rules by name, tag, source…">
+          </div>
+          <select class="form-control" style="width:160px;">
+            <option>Type: All</option>
+            <option>Journal Entry</option>
+            <option>Transformation</option>
+            <option>Validation</option>
+            <option>Subledger</option>
+          </select>
+          <select class="form-control" style="width:150px;">
+            <option>Status: All</option>
+            <option>Active</option>
+            <option>Draft</option>
+            <option>Deprecated</option>
+          </select>
+          <select class="form-control" style="width:170px;">
+            <option>Source: All</option>
+            <option>SAP S/4HANA</option>
+            <option>Oracle ERP Cloud</option>
+            <option>Salesforce</option>
+            <option>Microsoft Dynamics</option>
+          </select>
+          <div style="margin-left:auto; color:#64748B; font-size:12.5px; align-self:center;">Showing 12 of 47 rules</div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:28px;"><input type="checkbox"></th>
+                  <th>Rule Name</th>
+                  <th>Type</th>
+                  <th>Source</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Last Modified</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Revenue Recognition — ASC606</div>
+                    <div class="cell-sub">POB allocation, variable consideration, contract modifications</div>
+                  </td>
+                  <td><span class="type-badge type-je">Journal Entry</span></td>
+                  <td>Salesforce Rev Cloud</td>
+                  <td><span style="font-weight:700; color:#2563EB;">1</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Mar 10, 2026</div><div class="cell-sub">J. Martinez</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">FX Translation — USD to EUR</div>
+                    <div class="cell-sub">Monthly closing rate application, translation adjustment to OCI</div>
+                  </td>
+                  <td><span class="type-badge type-tx">Transformation</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#2563EB;">2</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Mar 8, 2026</div><div class="cell-sub">T. Nguyen</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Intercompany Elimination</div>
+                    <div class="cell-sub">Eliminates IC receivables/payables and unrealized profit in stock</div>
+                  </td>
+                  <td><span class="type-badge type-va">Validation</span></td>
+                  <td>Oracle ERP Cloud</td>
+                  <td><span style="font-weight:700; color:#2563EB;">1</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Mar 7, 2026</div><div class="cell-sub">S. Reynolds</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Lease Liability Amortization — ASC842</div>
+                    <div class="cell-sub">Right-of-use asset depreciation and interest accrual on lease liabilities</div>
+                  </td>
+                  <td><span class="type-badge type-je">Journal Entry</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#7C3AED;">3</span></td>
+                  <td><span class="badge badge-yellow">Draft</span></td>
+                  <td><div class="cell-main">Mar 6, 2026</div><div class="cell-sub">M. Patel</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-secondary btn-xs" style="opacity:0.5;" disabled>Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Deferred Revenue Recognition — SaaS</div>
+                    <div class="cell-sub">Monthly straight-line release from deferred revenue to earned revenue</div>
+                  </td>
+                  <td><span class="type-badge type-sl">Subledger</span></td>
+                  <td>Salesforce Rev Cloud</td>
+                  <td><span style="font-weight:700; color:#2563EB;">2</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Mar 5, 2026</div><div class="cell-sub">J. Martinez</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">FX Revaluation — IFRS 21 Compliance</div>
+                    <div class="cell-sub">Period-end revaluation of monetary items at closing exchange rates</div>
+                  </td>
+                  <td><span class="type-badge type-tx">Transformation</span></td>
+                  <td>Oracle ERP Cloud</td>
+                  <td><span style="font-weight:700; color:#2563EB;">2</span></td>
+                  <td><span class="badge badge-yellow">Draft</span></td>
+                  <td><div class="cell-main">Mar 4, 2026</div><div class="cell-sub">T. Nguyen</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-secondary btn-xs" style="opacity:0.5;" disabled>Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Balance Sheet Integrity Validation</div>
+                    <div class="cell-sub">Assets = Liabilities + Equity check with segment-level reconciliation</div>
+                  </td>
+                  <td><span class="type-badge type-va">Validation</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#2563EB;">1</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Mar 3, 2026</div><div class="cell-sub">S. Reynolds</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Cost Center Allocation — Shared Services</div>
+                    <div class="cell-sub">Distributes shared IT/HR costs to business units by headcount ratio</div>
+                  </td>
+                  <td><span class="type-badge type-sl">Subledger</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#7C3AED;">4</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Feb 28, 2026</div><div class="cell-sub">M. Patel</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Accrual Reversal — Month-End Accruals</div>
+                    <div class="cell-sub">Auto-reverses prior month accrual entries on first business day</div>
+                  </td>
+                  <td><span class="type-badge type-je">Journal Entry</span></td>
+                  <td>Oracle ERP Cloud</td>
+                  <td><span style="font-weight:700; color:#2563EB;">2</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Feb 25, 2026</div><div class="cell-sub">J. Martinez</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Tax Provision Calculation — ASC740</div>
+                    <div class="cell-sub">Current and deferred tax provision with effective rate reconciliation</div>
+                  </td>
+                  <td><span class="type-badge type-tx">Transformation</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#2563EB;">3</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Feb 20, 2026</div><div class="cell-sub">T. Nguyen</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">Goodwill Impairment Test — ASC350</div>
+                    <div class="cell-sub">Annual quantitative test with CGU fair value determination</div>
+                  </td>
+                  <td><span class="type-badge type-va">Validation</span></td>
+                  <td>Oracle ERP Cloud</td>
+                  <td><span style="font-weight:700; color:#94A3B8;">7</span></td>
+                  <td><span class="badge badge-gray">Deprecated</span></td>
+                  <td><div class="cell-main">Jan 15, 2026</div><div class="cell-sub">S. Reynolds</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-danger btn-xs">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td>
+                    <div class="cell-main">PPE Depreciation — Straight-Line</div>
+                    <div class="cell-sub">Monthly depreciation for fixed asset categories with disposal handling</div>
+                  </td>
+                  <td><span class="type-badge type-sl">Subledger</span></td>
+                  <td>SAP S/4HANA</td>
+                  <td><span style="font-weight:700; color:#7C3AED;">5</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="cell-main">Feb 12, 2026</div><div class="cell-sub">M. Patel</div></td>
+                  <td style="text-align:right;">
+                    <div class="flex gap-8" style="justify-content:flex-end;">
+                      <button class="btn btn-secondary btn-xs" onclick="openRulePanel()">Edit</button>
+                      <button class="btn btn-secondary btn-xs">Clone</button>
+                      <button class="btn btn-primary btn-xs">Deploy</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 16px; border-top:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#64748B;">Showing 1–12 of 47 rules</span>
+            <div class="pagination">
+              <div class="page-btn disabled">‹</div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn">3</div>
+              <div class="page-btn">4</div>
+              <span style="font-size:12px; color:#94A3B8; padding:0 4px;">…</span>
+              <div class="page-btn">8</div>
+              <div class="page-btn">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END LIBRARY TAB -->
+
+      <!-- BUILDER TAB -->
+      <div id="rules-builder" class="subtab-content">
+        <div class="grid-2" style="gap:20px; align-items:start;">
+          <div>
+            <!-- Rule Metadata -->
+            <div class="card mb-16">
+              <div class="card-header"><div class="card-title">Rule Metadata</div></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Rule Name <span class="required">*</span></label>
+                  <input class="form-control" type="text" value="Revenue Recognition — ASC606" placeholder="Enter descriptive rule name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" placeholder="Describe what this rule does and when it applies…">Applies ASC 606 revenue recognition criteria to Salesforce opportunity data. Allocates transaction price to performance obligations and records corresponding journal entries upon satisfaction.</textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Rule Type <span class="required">*</span></label>
+                    <select class="form-control" id="builder-rule-type" onchange="updateBuilderActions()">
+                      <option value="je" selected>Journal Entry</option>
+                      <option value="tx">Transformation</option>
+                      <option value="va">Validation</option>
+                      <option value="sl">Subledger</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Source System <span class="required">*</span></label>
+                    <select class="form-control">
+                      <option selected>Salesforce Revenue Cloud</option>
+                      <option>SAP S/4HANA</option>
+                      <option>Oracle ERP Cloud</option>
+                      <option>Microsoft Dynamics 365</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Priority (1 = Highest)</label>
+                    <input class="form-control" type="number" value="1" min="1" max="10">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tags</label>
+                    <input class="form-control" type="text" value="asc606, revenue, q1-2026" placeholder="Comma-separated tags">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conditions -->
+            <div class="card mb-16">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Conditions</div>
+                  <div class="card-subtitle">Rule fires when ALL conditions are met</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="addConditionRow()">+ Add Condition</button>
+              </div>
+              <div class="card-body">
+                <div id="conditions-container">
+                  <div class="condition-row">
+                    <select style="flex:1.5; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+                      <option selected>Opportunity.StageName</option>
+                      <option>Opportunity.Amount</option>
+                      <option>Opportunity.CloseDate</option>
+                      <option>Opportunity.Type</option>
+                      <option>Contract.Status</option>
+                    </select>
+                    <select style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+                      <option selected>equals</option>
+                      <option>not equals</option>
+                      <option>greater than</option>
+                      <option>less than</option>
+                      <option>contains</option>
+                      <option>is null</option>
+                    </select>
+                    <input style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;" value="Closed Won" placeholder="Value">
+                    <span class="cond-delete">✕</span>
+                  </div>
+                  <div class="condition-connector">AND</div>
+                  <div class="condition-row">
+                    <select style="flex:1.5; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+                      <option>Opportunity.StageName</option>
+                      <option selected>Opportunity.Amount</option>
+                      <option>Opportunity.CloseDate</option>
+                    </select>
+                    <select style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+                      <option>equals</option>
+                      <option>not equals</option>
+                      <option selected>greater than</option>
+                    </select>
+                    <input style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;" value="0" placeholder="Value">
+                    <span class="cond-delete">✕</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <!-- Actions -->
+            <div class="card mb-16" id="builder-actions-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Actions — Journal Entry</div>
+                  <div class="card-subtitle">Define debit/credit entries generated by this rule</div>
+                </div>
+                <button class="btn btn-secondary btn-sm">+ Add Entry</button>
+              </div>
+              <div class="card-body">
+                <div class="action-row">
+                  <div class="action-row-header">
+                    <div class="action-row-title">Entry Line 1 — Debit</div>
+                    <span style="cursor:pointer; color:#EF4444; font-size:13px;">✕</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label class="form-label">Debit Account</label>
+                      <input class="form-control" value="1200 — Accounts Receivable" placeholder="GL Account">
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label class="form-label">Amount Formula</label>
+                      <input class="form-control" value="Opportunity.Amount" placeholder="Formula or field ref">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label">Cost Center</label>
+                      <input class="form-control" value="CC-SALES-001" placeholder="Cost Center">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label">Ledger</label>
+                      <select class="form-control"><option selected>Corporate Ledger (USD)</option><option>Statutory Ledger (EUR)</option></select>
+                    </div>
+                  </div>
+                </div>
+                <div class="action-row">
+                  <div class="action-row-header">
+                    <div class="action-row-title">Entry Line 2 — Credit</div>
+                    <span style="cursor:pointer; color:#EF4444; font-size:13px;">✕</span>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label class="form-label">Credit Account</label>
+                      <input class="form-control" value="4000 — Revenue — SaaS Subscriptions" placeholder="GL Account">
+                    </div>
+                    <div class="form-group" style="margin-bottom:10px;">
+                      <label class="form-label">Amount Formula</label>
+                      <input class="form-control" value="Opportunity.Amount" placeholder="Formula or field ref">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label">Cost Center</label>
+                      <input class="form-control" value="CC-SALES-001" placeholder="Cost Center">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                      <label class="form-label">Ledger</label>
+                      <select class="form-control"><option selected>Corporate Ledger (USD)</option><option>Statutory Ledger (EUR)</option></select>
+                    </div>
+                  </div>
+                </div>
+                <div style="background:#EFF6FF; border:1px dashed #BFDBFE; border-radius:8px; padding:12px; font-size:12.5px; color:#1E40AF;">
+                  <strong>Balance Check:</strong> Debit total = Credit total ✓ &nbsp;|&nbsp; Accounts validated ✓ &nbsp;|&nbsp; Ledger mapping confirmed ✓
+                </div>
+              </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="card">
+              <div class="card-header"><div class="card-title">Advanced Settings</div></div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Effective Date</label>
+                    <input class="form-control" type="date" value="2026-01-01">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Expiry Date</label>
+                    <input class="form-control" type="date" value="2026-12-31">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Run Order (within priority group)</label>
+                  <input class="form-control" type="number" value="10" placeholder="e.g. 10, 20, 30…">
+                </div>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-label">Approval Required Before Deploy</div>
+                    <div class="toggle-desc">Two-person approval required for production deployment</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                </div>
+                <hr class="divider">
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-label">Enable Audit Logging</div>
+                    <div class="toggle-desc">Log all executions and results to audit trail</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                </div>
+                <hr class="divider">
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-label">Stop Pipeline on Exception</div>
+                    <div class="toggle-desc">Halt processing batch if this rule raises an exception</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-8 mt-16" style="justify-content:flex-end;">
+              <button class="btn btn-secondary">Discard Changes</button>
+              <button class="btn btn-warning">💾 Save as Draft</button>
+              <button class="btn btn-secondary">📋 Submit for Review</button>
+              <button class="btn btn-success">🚀 Deploy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END BUILDER TAB -->
+
+      <!-- DEPLOYMENT TAB -->
+      <div id="rules-deployment" class="subtab-content">
+        <div class="deploy-columns">
+          <div class="deploy-env-card" style="border-top:3px solid #94A3B8;">
+            <div class="deploy-env-name">🖥️ Development</div>
+            <span class="badge badge-gray">Sandbox</span>
+            <div class="deploy-env-stats">
+              <div class="deploy-env-stat"><span>Deployed Rules</span><strong>52</strong></div>
+              <div class="deploy-env-stat"><span>Last Deployment</span><strong>Today, 10:22 AM</strong></div>
+              <div class="deploy-env-stat"><span>Health Status</span><span class="badge badge-green">Healthy</span></div>
+              <div class="deploy-env-stat"><span>Environment</span><strong>DEV-US-EAST-01</strong></div>
+            </div>
+          </div>
+          <div class="deploy-env-card" style="border-top:3px solid #F59E0B;">
+            <div class="deploy-env-name">🧪 UAT / Staging</div>
+            <span class="badge badge-yellow">Pre-Production</span>
+            <div class="deploy-env-stats">
+              <div class="deploy-env-stat"><span>Deployed Rules</span><strong>49</strong></div>
+              <div class="deploy-env-stat"><span>Last Deployment</span><strong>Today, 08:44 AM</strong></div>
+              <div class="deploy-env-stat"><span>Health Status</span><span class="badge badge-yellow">1 Warning</span></div>
+              <div class="deploy-env-stat"><span>Environment</span><strong>UAT-US-EAST-01</strong></div>
+            </div>
+          </div>
+          <div class="deploy-env-card" style="border-top:3px solid #10B981;">
+            <div class="deploy-env-name">🏭 Production</div>
+            <span class="badge badge-green">Live</span>
+            <div class="deploy-env-stats">
+              <div class="deploy-env-stat"><span>Deployed Rules</span><strong>47</strong></div>
+              <div class="deploy-env-stat"><span>Last Deployment</span><strong>Today, 09:14 AM</strong></div>
+              <div class="deploy-env-stat"><span>Health Status</span><span class="badge badge-green">All Systems Go</span></div>
+              <div class="deploy-env-stat"><span>Environment</span><strong>PROD-US-EAST-01</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Deployment Pipeline</div>
+            <div class="flex gap-8">
+              <button class="btn btn-secondary btn-sm">⚙️ Pipeline Settings</button>
+              <button class="btn btn-primary btn-sm">+ New Deployment</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rule Name</th>
+                  <th>Version</th>
+                  <th>Current Env</th>
+                  <th>Target Env</th>
+                  <th>Requested By</th>
+                  <th>Status</th>
+                  <th>Progress</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-main">Lease Liability Amortization — ASC842</div><div class="cell-sub">DRAFT → Pending Review</div></td>
+                  <td>v1.0.0-draft</td>
+                  <td><span class="badge badge-gray">Development</span></td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td>M. Patel</td>
+                  <td><span class="badge badge-yellow">Pending Review</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar yellow" style="width:0%"></div></div><div style="font-size:10.5px; color:#64748B; margin-top:2px;">Awaiting approval</div></td>
+                  <td style="text-align:right;"><button class="btn btn-primary btn-xs">Review</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">FX Revaluation — IFRS 21 Compliance</div><div class="cell-sub">Updated calculations, new period handling</div></td>
+                  <td>v2.1.0</td>
+                  <td><span class="badge badge-gray">Development</span></td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td>T. Nguyen</td>
+                  <td><span class="badge badge-blue">In Progress</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar blue" style="width:60%"></div></div><div style="font-size:10.5px; color:#64748B; margin-top:2px;">Running validation tests</div></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">View Log</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Cost Center Allocation — Shared Services</div><div class="cell-sub">Headcount ratio update Q1 2026</div></td>
+                  <td>v3.2.1</td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td><span class="badge badge-green">Production</span></td>
+                  <td>S. Reynolds</td>
+                  <td><span class="badge badge-green">UAT Passed</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar green" style="width:100%"></div></div><div style="font-size:10.5px; color:#64748B; margin-top:2px;">Ready to deploy</div></td>
+                  <td style="text-align:right;"><button class="btn btn-success btn-xs">Deploy to Prod</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Revenue Recognition — ASC606</div><div class="cell-sub">v2.3 — POB allocation refinement</div></td>
+                  <td>v2.3.0</td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td><span class="badge badge-green">Production</span></td>
+                  <td>J. Martinez</td>
+                  <td><span class="badge badge-green">Complete</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar green" style="width:100%"></div></div><div style="font-size:10.5px; color:#64748B; margin-top:2px;">Deployed 09:14 AM</div></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Rollback</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Tax Provision Calculation — ASC740</div><div class="cell-sub">Q4 ETR recomputation logic</div></td>
+                  <td>v4.0.1</td>
+                  <td><span class="badge badge-gray">Development</span></td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td>T. Nguyen</td>
+                  <td><span class="badge badge-red">Failed</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar red" style="width:45%"></div></div><div style="font-size:10.5px; color:#EF4444; margin-top:2px;">Validation error: account mismatch</div></td>
+                  <td style="text-align:right;"><button class="btn btn-warning btn-xs">Fix &amp; Retry</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Balance Sheet Integrity Validation</div><div class="cell-sub">Segment-level reconciliation enhancement</div></td>
+                  <td>v5.1.0</td>
+                  <td><span class="badge badge-yellow">UAT</span></td>
+                  <td><span class="badge badge-green">Production</span></td>
+                  <td>S. Reynolds</td>
+                  <td><span class="badge badge-blue">Scheduled</span></td>
+                  <td style="min-width:120px;"><div class="progress-bar-container"><div class="progress-bar blue" style="width:0%"></div></div><div style="font-size:10.5px; color:#64748B; margin-top:2px;">Scheduled: Mar 14, 02:00 AM</div></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Reschedule</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- END DEPLOYMENT TAB -->
+
+      <!-- HISTORY TAB -->
+      <div id="rules-history" class="subtab-content">
+        <div class="flex justify-between items-center mb-16">
+          <div class="flex gap-8 items-center">
+            <div class="search-input-wrap" style="max-width:280px;">
+              <span class="search-icon">🔍</span>
+              <input type="text" placeholder="Search audit log…">
+            </div>
+            <select class="form-control" style="width:150px;">
+              <option>Action: All</option>
+              <option>Created</option>
+              <option>Modified</option>
+              <option>Deployed</option>
+              <option>Rolled Back</option>
+            </select>
+            <select class="form-control" style="width:150px;">
+              <option>Environment: All</option>
+              <option>Development</option>
+              <option>UAT</option>
+              <option>Production</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary btn-sm">📥 Export CSV</button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Rule Name</th>
+                  <th>Action</th>
+                  <th>User</th>
+                  <th>Environment</th>
+                  <th>Version</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="font-mono text-xs">2026-03-13 09:14:22</td><td><div class="cell-main">Revenue Recognition — ASC606</div></td><td><span class="badge badge-green">Deployed</span></td><td>J. Martinez</td><td><span class="badge badge-green">Production</span></td><td>v2.3.0</td><td class="text-sm text-muted">Deployed after 2-person approval sign-off</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-13 08:58:11</td><td><div class="cell-main">Revenue Recognition — ASC606</div></td><td><span class="badge badge-blue">Approved</span></td><td>S. Reynolds</td><td><span class="badge badge-yellow">UAT</span></td><td>v2.3.0</td><td class="text-sm text-muted">Second approver sign-off — cleared for production</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-13 08:30:44</td><td><div class="cell-main">Snowflake DW Export Pipeline</div></td><td><span class="badge badge-green">Executed</span></td><td>System</td><td><span class="badge badge-green">Production</span></td><td>—</td><td class="text-sm text-muted">Scheduled export completed · 94,201 records</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-13 07:52:03</td><td><div class="cell-main">FX Revaluation — IFRS 21</div></td><td><span class="badge badge-yellow">Modified</span></td><td>T. Nguyen</td><td><span class="badge badge-gray">Development</span></td><td>v2.1.0</td><td class="text-sm text-muted">Updated period-end rate lookup logic</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-13 07:18:55</td><td><div class="cell-main">MS Dynamics Ingestion Pipeline</div></td><td><span class="badge badge-red">Failed</span></td><td>System</td><td><span class="badge badge-green">Production</span></td><td>—</td><td class="text-sm text-muted">Connection timeout — retry queued</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-12 16:44:30</td><td><div class="cell-main">Lease Liability Amortization — ASC842</div></td><td><span class="badge badge-blue">Created</span></td><td>M. Patel</td><td><span class="badge badge-gray">Development</span></td><td>v1.0.0</td><td class="text-sm text-muted">New rule created from template — ASC842 Lease</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-12 14:22:10</td><td><div class="cell-main">Tax Provision Calculation — ASC740</div></td><td><span class="badge badge-red">Deploy Failed</span></td><td>T. Nguyen</td><td><span class="badge badge-yellow">UAT</span></td><td>v4.0.1</td><td class="text-sm text-muted">Validation failed: account 8200 not in chart of accounts</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-12 11:05:44</td><td><div class="cell-main">Intercompany Elimination</div></td><td><span class="badge badge-yellow">Modified</span></td><td>S. Reynolds</td><td><span class="badge badge-gray">Development</span></td><td>v3.4.2</td><td class="text-sm text-muted">Added elimination for new IC entity — APAC subsidiary</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-11 23:59:01</td><td><div class="cell-main">Balance Sheet Integrity Validation</div></td><td><span class="badge badge-green">Executed</span></td><td>System</td><td><span class="badge badge-green">Production</span></td><td>v5.0.3</td><td class="text-sm text-muted">Period-end validation pass · 0 exceptions</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-11 18:33:27</td><td><div class="cell-main">Cost Center Allocation — Shared Services</div></td><td><span class="badge badge-blue">Approved</span></td><td>T. Nguyen</td><td><span class="badge badge-yellow">UAT</span></td><td>v3.2.1</td><td class="text-sm text-muted">First approver sign-off</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-11 15:12:08</td><td><div class="cell-main">FX Translation — USD to EUR</div></td><td><span class="badge badge-green">Deployed</span></td><td>T. Nguyen</td><td><span class="badge badge-green">Production</span></td><td>v4.1.0</td><td class="text-sm text-muted">Monthly rate table updated, rule redeployed</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-10 12:00:00</td><td><div class="cell-main">Deferred Revenue Recognition — SaaS</div></td><td><span class="badge badge-green">Executed</span></td><td>System</td><td><span class="badge badge-green">Production</span></td><td>v2.0.0</td><td class="text-sm text-muted">Monthly deferred revenue release · 8,234 entries</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-08 09:44:15</td><td><div class="cell-main">Goodwill Impairment Test — ASC350</div></td><td><span class="badge badge-gray">Deprecated</span></td><td>S. Reynolds</td><td><span class="badge badge-green">Production</span></td><td>v1.2.1</td><td class="text-sm text-muted">Replaced by updated ASC350 module — marked deprecated</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-07 14:30:22</td><td><div class="cell-main">PPE Depreciation — Straight-Line</div></td><td><span class="badge badge-yellow">Modified</span></td><td>M. Patel</td><td><span class="badge badge-gray">Development</span></td><td>v2.3.0</td><td class="text-sm text-muted">Added disposal handling for partial-period retirement</td></tr>
+                <tr><td class="font-mono text-xs">2026-03-05 11:00:00</td><td><div class="cell-main">Accrual Reversal — Month-End</div></td><td><span class="badge badge-green">Executed</span></td><td>System</td><td><span class="badge badge-green">Production</span></td><td>v1.8.0</td><td class="text-sm text-muted">Auto-reversal of Feb accruals · 1,204 entries reversed</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 16px; border-top:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#64748B;">Showing 1–15 of 842 audit events</span>
+            <div class="pagination">
+              <div class="page-btn disabled">‹</div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn">3</div>
+              <span style="padding:0 4px; color:#94A3B8;">…</span>
+              <div class="page-btn">57</div>
+              <div class="page-btn">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END HISTORY TAB -->
+
+    </div>
+    <!-- END RULE ENGINE SECTION -->
+
+    <!-- ============================================================
+         SECTION 3: DATA INGESTION
+         ============================================================ -->
+    <div id="section-ingestion" class="section-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Data Ingestion</div>
+          <div class="page-subtitle">Manage source connections, data pipelines, and ingestion quality</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary btn-sm">⚙️ Global Settings</button>
+          <button class="btn btn-primary btn-sm">+ Add Source</button>
+        </div>
+      </div>
+
+      <div class="subtabs">
+        <div class="subtab active" onclick="switchSubTab('ingestion','sources')">🔌 Sources</div>
+        <div class="subtab" onclick="switchSubTab('ingestion','pipelines')">⚡ Pipelines</div>
+        <div class="subtab" onclick="switchSubTab('ingestion','preview')">👁️ Data Preview</div>
+      </div>
+
+      <!-- SOURCES TAB -->
+      <div id="ingestion-sources" class="subtab-content active">
+        <!-- ERP Systems -->
+        <div class="source-category">
+          <div class="source-category-title">🏢 ERP Systems</div>
+          <div class="source-cards-grid">
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#DBEAFE; font-size:22px;">🔷</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">SAP S/4HANA</div>
+              <div class="source-meta">HANA DB · RFC Connection · v2023</div>
+              <div class="source-stat"><span>Last Sync</span><strong>8 min ago</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong>18,432</strong></div>
+              <div class="source-stat"><span>Avg Sync Time</span><strong>2m 14s</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#FEF3C7; font-size:22px;">🟡</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Oracle ERP Cloud</div>
+              <div class="source-meta">REST API · OAuth 2.0 · v24C</div>
+              <div class="source-stat"><span>Last Sync</span><strong>22 min ago</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong>7,841</strong></div>
+              <div class="source-stat"><span>Avg Sync Time</span><strong>3m 45s</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card" style="border-color:#FCD34D;">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#FEF3C7; font-size:22px;">🪟</div>
+                <span class="badge badge-yellow">Warning</span>
+              </div>
+              <div class="source-name">Microsoft Dynamics 365</div>
+              <div class="source-meta">Dataverse API · OAuth · v9.2</div>
+              <div class="source-stat"><span>Last Sync</span><strong style="color:#F59E0B;">Failed 55 min ago</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong>0 (failed)</strong></div>
+              <div class="source-stat"><span>Issue</span><strong style="color:#EF4444;">Timeout</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-warning btn-xs w-full">Retry Now</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banking/Treasury -->
+        <div class="source-category">
+          <div class="source-category-title">🏦 Banking &amp; Treasury</div>
+          <div class="source-cards-grid">
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#D1FAE5; font-size:22px;">🏦</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Bank of America Feed</div>
+              <div class="source-meta">BAI2 Format · SFTP · Daily</div>
+              <div class="source-stat"><span>Last Sync</span><strong>Today, 06:00 AM</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong>2,841</strong></div>
+              <div class="source-stat"><span>Format</span><strong>BAI2</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#D1FAE5; font-size:22px;">💰</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Treasury Management System</div>
+              <div class="source-meta">Kyriba API · REST · Real-time</div>
+              <div class="source-stat"><span>Last Sync</span><strong>5 min ago</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong>412</strong></div>
+              <div class="source-stat"><span>Instruments</span><strong>142</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card" style="border-color:#FCA5A5;">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#FEE2E2; font-size:22px;">💳</div>
+                <span class="badge badge-red">Disconnected</span>
+              </div>
+              <div class="source-name">Payment Hub</div>
+              <div class="source-meta">SWIFT/FIN · MT940 · API</div>
+              <div class="source-stat"><span>Last Sync</span><strong style="color:#EF4444;">Mar 10, 2026</strong></div>
+              <div class="source-stat"><span>Records Today</span><strong style="color:#EF4444;">0</strong></div>
+              <div class="source-stat"><span>Issue</span><strong style="color:#EF4444;">API key expired</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-danger btn-xs w-full">Renew Credentials</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CRM / Revenue -->
+        <div class="source-category">
+          <div class="source-category-title">📊 CRM &amp; Revenue Platforms</div>
+          <div class="source-cards-grid">
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#DBEAFE; font-size:22px;">☁️</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Salesforce Revenue Cloud</div>
+              <div class="source-meta">Bulk API 2.0 · OAuth · Real-time</div>
+              <div class="source-stat"><span>Last Sync</span><strong>15 min ago</strong></div>
+              <div class="source-stat"><span>Opportunities</span><strong>3,204</strong></div>
+              <div class="source-stat"><span>Contracts</span><strong>892</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#EDE9FE; font-size:22px;">📋</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Billing Platform</div>
+              <div class="source-meta">Zuora REST API · Webhooks</div>
+              <div class="source-stat"><span>Last Sync</span><strong>30 min ago</strong></div>
+              <div class="source-stat"><span>Invoices Today</span><strong>1,544</strong></div>
+              <div class="source-stat"><span>ARR</span><strong>$48.2M</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Warehouses -->
+        <div class="source-category">
+          <div class="source-category-title">🗄️ Data Warehouses &amp; Analytics</div>
+          <div class="source-cards-grid">
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#DBEAFE; font-size:22px;">❄️</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Snowflake</div>
+              <div class="source-meta">Partner Connect · OAuth · Enterprise</div>
+              <div class="source-stat"><span>Last Export</span><strong>1h 30m ago</strong></div>
+              <div class="source-stat"><span>Tables</span><strong>84</strong></div>
+              <div class="source-stat"><span>Query Time</span><strong>2.3s avg</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#FEF3C7; font-size:22px;">🔥</div>
+                <span class="badge badge-green">Connected</span>
+              </div>
+              <div class="source-name">Databricks Delta Lake</div>
+              <div class="source-meta">Unity Catalog · JDBC · Spark</div>
+              <div class="source-stat"><span>Last Sync</span><strong>45 min ago</strong></div>
+              <div class="source-stat"><span>Cluster</span><strong>Active (4 nodes)</strong></div>
+              <div class="source-stat"><span>Delta Tables</span><strong>31</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-secondary btn-xs w-full">Test Connection</button>
+                <button class="btn btn-secondary btn-xs w-full">Configure</button>
+              </div>
+            </div>
+            <div class="source-card" style="border-color:#93C5FD;">
+              <div class="source-card-top">
+                <div class="source-icon" style="background:#DBEAFE; font-size:22px;">🌐</div>
+                <span class="badge badge-blue">Configuring</span>
+              </div>
+              <div class="source-name">Google BigQuery</div>
+              <div class="source-meta">Service Account · GCP · US-EAST1</div>
+              <div class="source-stat"><span>Status</span><strong style="color:#2563EB;">Credentials setup</strong></div>
+              <div class="source-stat"><span>Datasets</span><strong>—</strong></div>
+              <div class="source-stat"><span>Est. Complete</span><strong>Today, 4:00 PM</strong></div>
+              <div class="source-actions">
+                <button class="btn btn-primary btn-xs w-full">Complete Setup</button>
+                <button class="btn btn-secondary btn-xs w-full">View Guide</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END SOURCES TAB -->
+
+      <!-- PIPELINES TAB -->
+      <div id="ingestion-pipelines" class="subtab-content">
+        <div class="flex justify-between items-center mb-16">
+          <div class="flex gap-8 items-center">
+            <div class="search-input-wrap" style="max-width:280px;">
+              <span class="search-icon">🔍</span>
+              <input type="text" placeholder="Search pipelines…">
+            </div>
+            <select class="form-control" style="width:150px;">
+              <option>Status: All</option>
+              <option>Running</option>
+              <option>Completed</option>
+              <option>Failed</option>
+              <option>Scheduled</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm">+ New Pipeline</button>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Pipeline Name</th>
+                  <th>Source</th>
+                  <th>Records</th>
+                  <th>Status</th>
+                  <th>Duration</th>
+                  <th>Started</th>
+                  <th>Schedule</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-main">SAP GL Transactions — Daily</div><div class="cell-sub">FI-GL: All posting types, all company codes</div></td>
+                  <td>SAP S/4HANA</td>
+                  <td><strong>18,432</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>2m 14s</td>
+                  <td>Today, 06:00 AM</td>
+                  <td class="text-sm text-muted">Daily 06:00</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Oracle AP Invoices — Hourly</div><div class="cell-sub">AP module: Invoices, payments, holds</div></td>
+                  <td>Oracle ERP Cloud</td>
+                  <td><strong>2,104</strong></td>
+                  <td>
+                    <span class="badge badge-blue">Running</span>
+                    <div class="progress-bar-container mt-4" style="width:100px;"><div class="progress-bar blue" style="width:70%"></div></div>
+                  </td>
+                  <td>~45s</td>
+                  <td>Today, 10:00 AM</td>
+                  <td class="text-sm text-muted">Hourly</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-danger btn-xs">Stop</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Salesforce Revenue — Real-time</div><div class="cell-sub">Opportunities, contracts, revenue schedules</div></td>
+                  <td>Salesforce Rev Cloud</td>
+                  <td><strong>3,204</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>38s</td>
+                  <td>Today, 09:45 AM</td>
+                  <td class="text-sm text-muted">Every 15 min</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">MS Dynamics 365 — Full Refresh</div><div class="cell-sub">All modules: FA, projects, inventory</div></td>
+                  <td>MS Dynamics 365</td>
+                  <td><strong style="color:#EF4444;">0</strong></td>
+                  <td><span class="badge badge-red">Failed</span></td>
+                  <td>30s (timeout)</td>
+                  <td>Today, 07:00 AM</td>
+                  <td class="text-sm text-muted">Daily 07:00</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Error</button><button class="btn btn-warning btn-xs">Retry</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Bank of America BAI2 Feed</div><div class="cell-sub">Statement transactions, opening/closing balances</div></td>
+                  <td>Bank of America</td>
+                  <td><strong>2,841</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>1m 02s</td>
+                  <td>Today, 06:30 AM</td>
+                  <td class="text-sm text-muted">Daily 06:30</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Snowflake Fact Tables — Incremental</div><div class="cell-sub">fact_journal_entries, fact_transactions incremental load</div></td>
+                  <td>Snowflake</td>
+                  <td><strong>94,201</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>2m 18s</td>
+                  <td>Today, 08:30 AM</td>
+                  <td class="text-sm text-muted">Every 2 hours</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Billing Platform — Invoice Sync</div><div class="cell-sub">Zuora invoices, subscriptions, amendments</div></td>
+                  <td>Billing Platform</td>
+                  <td><strong>1,544</strong></td>
+                  <td><span class="badge badge-blue">Scheduled</span></td>
+                  <td>—</td>
+                  <td>Today, 11:00 AM</td>
+                  <td class="text-sm text-muted">Hourly</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">Configure</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Treasury — FX Rates &amp; Positions</div><div class="cell-sub">Kyriba: spot rates, FX forwards, cash positions</div></td>
+                  <td>Treasury Mgmt System</td>
+                  <td><strong>412</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>12s</td>
+                  <td>Today, 09:55 AM</td>
+                  <td class="text-sm text-muted">Every 5 min</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">View Log</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- END PIPELINES TAB -->
+
+      <!-- DATA PREVIEW TAB -->
+      <div id="ingestion-preview" class="subtab-content">
+        <div class="flex gap-12 items-center mb-16" style="flex-wrap:wrap;">
+          <div class="form-group" style="margin:0; display:flex; align-items:center; gap:8px;">
+            <label class="form-label" style="margin:0; white-space:nowrap;">Source:</label>
+            <select class="form-control" style="width:220px;">
+              <option selected>SAP S/4HANA — GL Transactions</option>
+              <option>Oracle ERP Cloud — AP Invoices</option>
+              <option>Salesforce — Opportunities</option>
+              <option>Bank of America — Statements</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0; display:flex; align-items:center; gap:8px;">
+            <label class="form-label" style="margin:0; white-space:nowrap;">Date Range:</label>
+            <input class="form-control" type="date" value="2026-03-13" style="width:150px;">
+            <span style="color:#94A3B8;">to</span>
+            <input class="form-control" type="date" value="2026-03-13" style="width:150px;">
+          </div>
+          <button class="btn btn-primary btn-sm">Preview Data</button>
+          <button class="btn btn-secondary btn-sm">📥 Download Sample</button>
+        </div>
+
+        <!-- Data Quality Bar -->
+        <div class="card mb-16">
+          <div class="card-body" style="padding:16px;">
+            <div class="flex justify-between items-center mb-8">
+              <div class="card-title">Data Quality Overview — Today's Batch</div>
+              <span class="text-sm text-muted">64,933 records analyzed</span>
+            </div>
+            <div class="dq-bar">
+              <div class="dq-segment" style="width:98.2%; background:#10B981;"></div>
+              <div class="dq-segment" style="width:1.5%; background:#F59E0B;"></div>
+              <div class="dq-segment" style="width:0.3%; background:#EF4444;"></div>
+            </div>
+            <div class="flex gap-16 mt-8">
+              <div class="flex gap-8 items-center"><div style="width:10px; height:10px; border-radius:2px; background:#10B981;"></div><span class="text-sm">98.2% Valid (63,764)</span></div>
+              <div class="flex gap-8 items-center"><div style="width:10px; height:10px; border-radius:2px; background:#F59E0B;"></div><span class="text-sm">1.5% Warnings (974)</span></div>
+              <div class="flex gap-8 items-center"><div style="width:10px; height:10px; border-radius:2px; background:#EF4444;"></div><span class="text-sm">0.3% Errors (195)</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2 mb-16">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Column Profiling</div></div>
+            <div class="card-body" style="padding:12px;">
+              <table style="font-size:12px;">
+                <thead><tr><th>Column</th><th>Type</th><th>Distinct</th><th>Null %</th><th>Min</th><th>Max</th></tr></thead>
+                <tbody>
+                  <tr><td class="font-mono">TRANSACTION_ID</td><td>VARCHAR</td><td>18,432</td><td>0.0%</td><td>—</td><td>—</td></tr>
+                  <tr><td class="font-mono">POSTING_DATE</td><td>DATE</td><td>1</td><td>0.0%</td><td>2026-03-13</td><td>2026-03-13</td></tr>
+                  <tr><td class="font-mono">AMOUNT_LC</td><td>DECIMAL</td><td>14,201</td><td>0.0%</td><td>-482,000</td><td>2,840,000</td></tr>
+                  <tr><td class="font-mono">CURRENCY</td><td>VARCHAR(3)</td><td>12</td><td>0.0%</td><td>—</td><td>—</td></tr>
+                  <tr><td class="font-mono">GL_ACCOUNT</td><td>VARCHAR</td><td>284</td><td>0.1%</td><td>1000</td><td>9999</td></tr>
+                  <tr><td class="font-mono">COST_CENTER</td><td>VARCHAR</td><td>48</td><td>2.4%</td><td>—</td><td>—</td></tr>
+                  <tr><td class="font-mono">DESCRIPTION</td><td>VARCHAR</td><td>8,122</td><td>0.8%</td><td>—</td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Currency Distribution</div></div>
+            <div class="card-body">
+              <canvas id="chart-currency-dist" style="max-height:180px;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Transaction Data Preview</div>
+            <span class="text-sm text-muted">First 10 records of today's batch</span>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Date</th>
+                  <th>Amount (LC)</th>
+                  <th>Currency</th>
+                  <th>GL Account</th>
+                  <th>Cost Center</th>
+                  <th>Description</th>
+                  <th>Quality</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="font-mono text-xs">SAP-2026-031300001</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$124,500.00</td><td>USD</td><td>4000</td><td>CC-SALES-001</td><td>Revenue — SaaS Q1 2026</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300002</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$124,500.00</td><td>USD</td><td>1200</td><td>CC-SALES-001</td><td>A/R — SaaS Q1 2026</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300003</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">€48,200.00</td><td>EUR</td><td>4100</td><td>CC-EMEA-002</td><td>Revenue — Professional Services EMEA</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300004</td><td>2026-03-13</td><td style="text-align:right; font-weight:600; color:#EF4444;">-$32,100.00</td><td>USD</td><td>5200</td><td>CC-G&A-005</td><td>Accrual — Legal Services Mar 2026</td><td><span class="badge badge-yellow" style="font-size:10px;">Warning</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300005</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$8,750.00</td><td>USD</td><td>6100</td><td></td><td>Depreciation — IT Equipment</td><td><span class="badge badge-yellow" style="font-size:10px;">Null CC</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300006</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$2,840,000.00</td><td>USD</td><td>1500</td><td>CC-CORP-001</td><td>Cash — Operating Account Wire Receipt</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300007</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$18,200.00</td><td>USD</td><td>2100</td><td>CC-G&A-005</td><td>Accounts Payable — Software Licenses</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300008</td><td>2026-03-13</td><td style="text-align:right; font-weight:600; color:#EF4444;">-$482,000.00</td><td>GBP</td><td>9999</td><td>CC-CORP-001</td><td>FX Revaluation — GBP position</td><td><span class="badge badge-red" style="font-size:10px;">Error</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300009</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">¥1,240,000</td><td>JPY</td><td>4200</td><td>CC-APAC-003</td><td>Revenue — License Fee APAC</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+                <tr><td class="font-mono text-xs">SAP-2026-031300010</td><td>2026-03-13</td><td style="text-align:right; font-weight:600;">$44,000.00</td><td>USD</td><td>3100</td><td>CC-CORP-001</td><td>Intercompany — Loan Interest APAC</td><td><span class="badge badge-green" style="font-size:10px;">Valid</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- END PREVIEW TAB -->
+
+    </div>
+    <!-- END DATA INGESTION SECTION -->
+
+    <!-- ============================================================
+         SECTION 4: REPORTS & VISUALIZATION
+         ============================================================ -->
+    <div id="section-reports" class="section-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Reports &amp; Visualization</div>
+          <div class="page-subtitle">Analytics dashboards for rule performance and financial processing</div>
+        </div>
+        <div class="page-header-right">
+          <div class="date-range-picker">
+            <button class="drp-btn">7 Days</button>
+            <button class="drp-btn active">30 Days</button>
+            <button class="drp-btn">90 Days</button>
+            <button class="drp-btn">Custom</button>
+          </div>
+          <button class="btn btn-secondary btn-sm">📥 Export Report</button>
+          <button class="btn btn-primary btn-sm">+ New Report</button>
+        </div>
+      </div>
+
+      <!-- Summary Stats Row -->
+      <div class="grid-4 mb-20">
+        <div class="card" style="padding:16px;">
+          <div class="text-muted text-sm mb-4">Total Rule Executions</div>
+          <div style="font-size:24px; font-weight:800; color:#1E293B;">842,104</div>
+          <div style="font-size:11.5px; color:#10B981; margin-top:4px;">↑ 8.3% vs prior period</div>
+        </div>
+        <div class="card" style="padding:16px;">
+          <div class="text-muted text-sm mb-4">Success Rate</div>
+          <div style="font-size:24px; font-weight:800; color:#10B981;">99.64%</div>
+          <div style="font-size:11.5px; color:#10B981; margin-top:4px;">↑ 0.12% vs prior period</div>
+        </div>
+        <div class="card" style="padding:16px;">
+          <div class="text-muted text-sm mb-4">Avg Processing Time</div>
+          <div style="font-size:24px; font-weight:800; color:#1E293B;">1.84s</div>
+          <div style="font-size:11.5px; color:#10B981; margin-top:4px;">↓ 0.23s faster</div>
+        </div>
+        <div class="card" style="padding:16px;">
+          <div class="text-muted text-sm mb-4">Total Exceptions</div>
+          <div style="font-size:24px; font-weight:800; color:#EF4444;">3,042</div>
+          <div style="font-size:11.5px; color:#EF4444; margin-top:4px;">↑ 142 vs prior period</div>
+        </div>
+      </div>
+
+      <!-- 2x2 Chart Grid -->
+      <div class="chart-grid mb-20">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Rule Execution Trend</div>
+              <div class="card-subtitle">Daily executions — last 30 days</div>
+            </div>
+            <select class="form-control" style="width:auto; font-size:12px; padding:4px 8px;">
+              <option>All Rule Types</option>
+              <option>Journal Entry</option>
+              <option>Transformation</option>
+              <option>Validation</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-rule-trend"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Processing Volume by Source</div>
+              <div class="card-subtitle">Share of total records ingested</div>
+            </div>
+          </div>
+          <div class="card-body" style="display:flex; align-items:center; gap:20px;">
+            <div class="chart-container" style="height:200px; flex:1;">
+              <canvas id="chart-source-volume"></canvas>
+            </div>
+            <div style="min-width:160px;">
+              <div style="font-size:11.5px; font-weight:600; color:#64748B; margin-bottom:8px;">SOURCES</div>
+              <div style="display:flex; flex-direction:column; gap:6px; font-size:12px;">
+                <div class="flex items-center gap-8"><div style="width:10px;height:10px;border-radius:2px;background:#2563EB;flex-shrink:0;"></div><span>SAP S/4HANA</span><strong style="margin-left:auto;">38.2%</strong></div>
+                <div class="flex items-center gap-8"><div style="width:10px;height:10px;border-radius:2px;background:#7C3AED;flex-shrink:0;"></div><span>Oracle ERP</span><strong style="margin-left:auto;">21.4%</strong></div>
+                <div class="flex items-center gap-8"><div style="width:10px;height:10px;border-radius:2px;background:#10B981;flex-shrink:0;"></div><span>Salesforce</span><strong style="margin-left:auto;">16.8%</strong></div>
+                <div class="flex items-center gap-8"><div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;flex-shrink:0;"></div><span>Snowflake</span><strong style="margin-left:auto;">14.1%</strong></div>
+                <div class="flex items-center gap-8"><div style="width:10px;height:10px;border-radius:2px;background:#64748B;flex-shrink:0;"></div><span>Other</span><strong style="margin-left:auto;">9.5%</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Exception Rate by Rule Type</div>
+              <div class="card-subtitle">Exceptions per 1,000 executions</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-exception-rate"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Journal Entry Distribution</div>
+              <div class="card-subtitle">Volume by account type this month</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:220px;">
+              <canvas id="chart-je-distribution"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Rule Performance Summary — Last 30 Days</div>
+          <button class="btn btn-secondary btn-sm">📥 Export CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Rule Name</th>
+                <th>Type</th>
+                <th>Executions</th>
+                <th>Success</th>
+                <th>Exceptions</th>
+                <th>Success Rate</th>
+                <th>Avg Time</th>
+                <th>Records Processed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><div class="cell-main">Revenue Recognition — ASC606</div></td><td><span class="type-badge type-je">JE</span></td><td>31,204</td><td style="color:#10B981; font-weight:700;">31,194</td><td style="color:#EF4444;">10</td><td><span class="badge badge-green">99.97%</span></td><td>2.1s</td><td>1,284,000</td></tr>
+              <tr><td><div class="cell-main">FX Translation — USD to EUR</div></td><td><span class="type-badge type-tx">TX</span></td><td>8,844</td><td style="color:#10B981; font-weight:700;">8,809</td><td style="color:#EF4444;">35</td><td><span class="badge badge-green">99.60%</span></td><td>3.4s</td><td>384,200</td></tr>
+              <tr><td><div class="cell-main">Intercompany Elimination</div></td><td><span class="type-badge type-va">VA</span></td><td>720</td><td style="color:#10B981; font-weight:700;">717</td><td style="color:#EF4444;">3</td><td><span class="badge badge-green">99.58%</span></td><td>8.2s</td><td>244,800</td></tr>
+              <tr><td><div class="cell-main">Balance Sheet Integrity Validation</div></td><td><span class="type-badge type-va">VA</span></td><td>720</td><td style="color:#10B981; font-weight:700;">720</td><td style="color:#10B981;">0</td><td><span class="badge badge-green">100%</span></td><td>12.1s</td><td>744,800</td></tr>
+              <tr><td><div class="cell-main">Deferred Revenue — SaaS</div></td><td><span class="type-badge type-sl">SL</span></td><td>24</td><td style="color:#10B981; font-weight:700;">24</td><td style="color:#10B981;">0</td><td><span class="badge badge-green">100%</span></td><td>42.0s</td><td>247,020</td></tr>
+              <tr><td><div class="cell-main">Tax Provision — ASC740</div></td><td><span class="type-badge type-tx">TX</span></td><td>4,320</td><td style="color:#10B981; font-weight:700;">4,288</td><td style="color:#F59E0B;">32</td><td><span class="badge badge-yellow">99.26%</span></td><td>5.8s</td><td>184,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- END REPORTS SECTION -->
+
+    <!-- ============================================================
+         SECTION 5: EXPORT & INTEGRATION
+         ============================================================ -->
+    <div id="section-export" class="section-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Export &amp; Integration</div>
+          <div class="page-subtitle">Push data to downstream systems, generate regulatory filings, and schedule exports</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary btn-sm">⚙️ Integration Settings</button>
+          <button class="btn btn-primary btn-sm">+ New Export Job</button>
+        </div>
+      </div>
+
+      <div class="subtabs">
+        <div class="subtab active" onclick="switchSubTab('export','jobs')">📋 Jobs</div>
+        <div class="subtab" onclick="switchSubTab('export','destinations')">🎯 Destinations</div>
+        <div class="subtab" onclick="switchSubTab('export','schedule')">🗓️ Schedule</div>
+      </div>
+
+      <!-- JOBS TAB -->
+      <div id="export-jobs" class="subtab-content active">
+        <div class="flex justify-between items-center mb-16">
+          <div class="flex gap-8 items-center">
+            <div class="search-input-wrap" style="max-width:260px;">
+              <span class="search-icon">🔍</span>
+              <input type="text" placeholder="Search export jobs…">
+            </div>
+            <select class="form-control" style="width:140px;">
+              <option>Status: All</option>
+              <option>Running</option>
+              <option>Completed</option>
+              <option>Failed</option>
+              <option>Scheduled</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm">+ New Export Job</button>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Job Name</th>
+                  <th>Destination</th>
+                  <th>Format</th>
+                  <th>Records</th>
+                  <th>Status</th>
+                  <th>Duration</th>
+                  <th>Started</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-main">SAP GL Journal Entry Push</div><div class="cell-sub">Period-close batch — Q1 2026 final</div></td>
+                  <td>SAP S/4HANA GL</td>
+                  <td><span class="type-badge" style="background:#F0FDF4; color:#166534;">IDOC</span></td>
+                  <td><strong>24,831</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>4m 32s</td>
+                  <td>Today, 09:00 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">📄 Log</button><button class="btn btn-secondary btn-xs">↺ Re-run</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Oracle GL Subledger Sync</div><div class="cell-sub">AP/AR subledger journals to Oracle GL</div></td>
+                  <td>Oracle ERP GL</td>
+                  <td><span class="type-badge" style="background:#F0FDF4; color:#166534;">OIC</span></td>
+                  <td><strong>7,841</strong></td>
+                  <td>
+                    <span class="badge badge-blue">Running</span>
+                    <div class="progress-bar-container mt-4" style="width:100px;"><div class="progress-bar blue" style="width:55%"></div></div>
+                  </td>
+                  <td>~3m 20s</td>
+                  <td>Today, 10:02 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">📄 Log</button><button class="btn btn-danger btn-xs">Stop</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Snowflake DW Full Export</div><div class="cell-sub">fact_je, fact_transactions, dim_accounts</div></td>
+                  <td>Snowflake Output</td>
+                  <td><span class="type-badge" style="background:#EFF6FF; color:#1E40AF;">PARQUET</span></td>
+                  <td><strong>94,201</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>2m 18s</td>
+                  <td>Today, 08:30 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">📥 Download</button><button class="btn btn-secondary btn-xs">↺ Re-run</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">SEC 10-Q XBRL Filing Package</div><div class="cell-sub">iXBRL taxonomy 2025 — Q1 2026 filing</div></td>
+                  <td>XBRL Generator</td>
+                  <td><span class="type-badge" style="background:#FEF3C7; color:#92400E;">IXBRL</span></td>
+                  <td><strong>1,844</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>1m 05s</td>
+                  <td>Yesterday, 2:15 PM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-primary btn-xs">📥 Download</button><button class="btn btn-secondary btn-xs">↺ Re-run</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">BigQuery Analytics Export</div><div class="cell-sub">Rule execution metrics and aggregated KPIs</div></td>
+                  <td>BigQuery Export</td>
+                  <td><span class="type-badge" style="background:#EFF6FF; color:#1E40AF;">JSON</span></td>
+                  <td>—</td>
+                  <td><span class="badge badge-red">Failed</span></td>
+                  <td>12s</td>
+                  <td>Today, 07:30 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-danger btn-xs">View Error</button><button class="btn btn-warning btn-xs">↺ Retry</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Monthly GL Trial Balance CSV</div><div class="cell-sub">All accounts, all cost centers — Feb 2026</div></td>
+                  <td>File Download</td>
+                  <td><span class="type-badge" style="background:#F1F5F9; color:#475569;">CSV</span></td>
+                  <td><strong>12,040</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>22s</td>
+                  <td>Mar 1, 12:05 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-primary btn-xs">📥 Download</button><button class="btn btn-secondary btn-xs">↺ Re-run</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Audit File Export — GAAP</div><div class="cell-sub">SAF-T format for external audit Q1 2026</div></td>
+                  <td>Audit File Export</td>
+                  <td><span class="type-badge" style="background:#EDE9FE; color:#5B21B6;">SAF-T</span></td>
+                  <td><strong>284,000</strong></td>
+                  <td><span class="badge badge-blue">Scheduled</span></td>
+                  <td>—</td>
+                  <td>Mar 15, 02:00 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">Configure</button><button class="btn btn-primary btn-xs">Run Now</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">NetSuite Subsidiary GL Sync</div><div class="cell-sub">Intercompany eliminations and consolidations</div></td>
+                  <td>NetSuite GL</td>
+                  <td><span class="type-badge" style="background:#F0FDF4; color:#166534;">REST</span></td>
+                  <td><strong>3,204</strong></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td>1m 44s</td>
+                  <td>Today, 07:55 AM</td>
+                  <td style="text-align:right;"><div class="flex gap-8" style="justify-content:flex-end;"><button class="btn btn-secondary btn-xs">📄 Log</button><button class="btn btn-secondary btn-xs">↺ Re-run</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- END JOBS TAB -->
+
+      <!-- DESTINATIONS TAB -->
+      <div id="export-destinations" class="subtab-content">
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin-bottom:10px;">ERP General Ledger</div>
+        <div class="dest-card-grid">
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#DBEAFE; font-size:20px;">🔷</div>
+              <div>
+                <div class="dest-name">SAP S/4HANA GL</div>
+                <div class="dest-meta">IDOC/BAPI · RFC · Batch &amp; Real-time</div>
+              </div>
+              <span class="badge badge-green" style="margin-left:auto;">Active</span>
+            </div>
+            <div class="source-stat"><span>Last Export</span><strong>Today, 09:00 AM</strong></div>
+            <div class="source-stat"><span>Records Exported</span><strong>24,831</strong></div>
+            <div class="source-stat"><span>Journal Sources</span><strong>12 rules mapped</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-secondary btn-xs w-full">Test</button></div>
+          </div>
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#FEF3C7; font-size:20px;">🟡</div>
+              <div>
+                <div class="dest-name">Oracle ERP GL</div>
+                <div class="dest-meta">Oracle Integration Cloud · REST</div>
+              </div>
+              <span class="badge badge-green" style="margin-left:auto;">Active</span>
+            </div>
+            <div class="source-stat"><span>Last Export</span><strong>Running now</strong></div>
+            <div class="source-stat"><span>Records Exported</span><strong>7,841</strong></div>
+            <div class="source-stat"><span>Journal Sources</span><strong>8 rules mapped</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-secondary btn-xs w-full">Test</button></div>
+          </div>
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#D1FAE5; font-size:20px;">🟢</div>
+              <div>
+                <div class="dest-name">NetSuite GL</div>
+                <div class="dest-meta">SuiteTalk REST · OAuth 2.0</div>
+              </div>
+              <span class="badge badge-blue" style="margin-left:auto;">Configured</span>
+            </div>
+            <div class="source-stat"><span>Last Export</span><strong>Today, 07:55 AM</strong></div>
+            <div class="source-stat"><span>Records Exported</span><strong>3,204</strong></div>
+            <div class="source-stat"><span>Journal Sources</span><strong>4 rules mapped</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-secondary btn-xs w-full">Test</button></div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin:16px 0 10px;">Data Warehouses</div>
+        <div class="dest-card-grid">
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#DBEAFE; font-size:20px;">❄️</div>
+              <div><div class="dest-name">Snowflake Output</div><div class="dest-meta">Partner Connect · Multi-cluster · XL</div></div>
+              <span class="badge badge-green" style="margin-left:auto;">Active</span>
+            </div>
+            <div class="source-stat"><span>Last Export</span><strong>Today, 08:30 AM</strong></div>
+            <div class="source-stat"><span>Records Exported</span><strong>94,201</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-secondary btn-xs w-full">Test</button></div>
+          </div>
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#DBEAFE; font-size:20px;">🌐</div>
+              <div><div class="dest-name">BigQuery Export</div><div class="dest-meta">Service Account · US-EAST1</div></div>
+              <span class="badge badge-red" style="margin-left:auto;">Error</span>
+            </div>
+            <div class="source-stat"><span>Last Export</span><strong style="color:#EF4444;">Failed today</strong></div>
+            <div class="source-stat"><span>Issue</span><strong style="color:#EF4444;">Auth token expired</strong></div>
+            <div class="source-actions"><button class="btn btn-danger btn-xs w-full">Fix Credentials</button><button class="btn btn-secondary btn-xs w-full">View Error</button></div>
+          </div>
+        </div>
+
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; margin:16px 0 10px;">Regulatory &amp; Compliance</div>
+        <div class="dest-card-grid">
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#FEF3C7; font-size:20px;">📋</div>
+              <div><div class="dest-name">XBRL Generator</div><div class="dest-meta">iXBRL · US-GAAP · SEC EDGAR</div></div>
+              <span class="badge badge-green" style="margin-left:auto;">Active</span>
+            </div>
+            <div class="source-stat"><span>Last Filing</span><strong>Yesterday, 2:15 PM</strong></div>
+            <div class="source-stat"><span>Filing Type</span><strong>10-Q Q1 2026</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-secondary btn-xs w-full">Generate</button></div>
+          </div>
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#EDE9FE; font-size:20px;">🛡️</div>
+              <div><div class="dest-name">Audit File Export</div><div class="dest-meta">SAF-T · OECD · PCAOB</div></div>
+              <span class="badge badge-green" style="margin-left:auto;">Active</span>
+            </div>
+            <div class="source-stat"><span>Next Run</span><strong>Mar 15, 02:00 AM</strong></div>
+            <div class="source-stat"><span>Last Export</span><strong>Feb 15, 2026</strong></div>
+            <div class="source-actions"><button class="btn btn-secondary btn-xs w-full">Configure</button><button class="btn btn-primary btn-xs w-full">Run Now</button></div>
+          </div>
+          <div class="dest-card">
+            <div class="dest-card-header">
+              <div class="dest-icon" style="background:#F1F5F9; font-size:20px;">📄</div>
+              <div><div class="dest-name">CSV / Excel Download</div><div class="dest-meta">Manual export · Always available</div></div>
+              <span class="badge badge-green" style="margin-left:auto;">Available</span>
+            </div>
+            <div class="source-stat"><span>Formats</span><strong>CSV, XLSX, TSV, JSON</strong></div>
+            <div class="source-stat"><span>Max Records</span><strong>1,000,000</strong></div>
+            <div class="source-actions"><button class="btn btn-primary btn-xs w-full">Export Now</button></div>
+          </div>
+        </div>
+      </div>
+      <!-- END DESTINATIONS TAB -->
+
+      <!-- SCHEDULE TAB -->
+      <div id="export-schedule" class="subtab-content">
+        <div class="flex justify-between items-center mb-16">
+          <div style="font-size:14px; font-weight:600; color:#1E293B;">Scheduled Export Jobs</div>
+          <div class="flex gap-8">
+            <button class="btn btn-secondary btn-sm">📅 Calendar View</button>
+            <button class="btn btn-primary btn-sm">+ New Schedule</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Schedule Name</th>
+                  <th>Destination</th>
+                  <th>Frequency</th>
+                  <th>Next Run</th>
+                  <th>Last Run</th>
+                  <th>Last Status</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="cell-main">SAP GL Daily Close Push</div><div class="cell-sub">All posting types, all company codes</div></td>
+                  <td>SAP S/4HANA GL</td>
+                  <td><span class="badge badge-blue">Daily</span></td>
+                  <td>Mar 14, 09:00 AM</td>
+                  <td>Today, 09:00 AM</td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Snowflake Incremental Load</div><div class="cell-sub">Every 2 hours incremental append</div></td>
+                  <td>Snowflake Output</td>
+                  <td><span class="badge badge-blue">Hourly ×2</span></td>
+                  <td>Today, 12:30 PM</td>
+                  <td>Today, 08:30 AM</td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Monthly Trial Balance Report</div><div class="cell-sub">CSV export to shared finance drive</div></td>
+                  <td>File Download</td>
+                  <td><span class="badge badge-purple">Monthly</span></td>
+                  <td>Apr 1, 12:05 AM</td>
+                  <td>Mar 1, 12:05 AM</td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Quarterly XBRL SEC Filing</div><div class="cell-sub">iXBRL package generation for EDGAR</div></td>
+                  <td>XBRL Generator</td>
+                  <td><span class="badge badge-purple">Quarterly</span></td>
+                  <td>Apr 30, 06:00 AM</td>
+                  <td>Yesterday, 2:15 PM</td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">External Audit SAF-T Package</div><div class="cell-sub">Full trial balance export in SAF-T format</div></td>
+                  <td>Audit File Export</td>
+                  <td><span class="badge badge-purple">Monthly</span></td>
+                  <td>Mar 15, 02:00 AM</td>
+                  <td>Feb 15, 02:00 AM</td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-secondary btn-xs">Edit</button></td>
+                </tr>
+                <tr>
+                  <td><div class="cell-main">Weekly Revenue Analytics</div><div class="cell-sub">BigQuery — ARR, MRR, churn metrics</div></td>
+                  <td>BigQuery Export</td>
+                  <td><span class="badge badge-orange">Weekly</span></td>
+                  <td>Mar 16, 06:00 AM</td>
+                  <td>Mar 9, 06:00 AM</td>
+                  <td><span class="badge badge-red">Failed</span></td>
+                  <td style="text-align:right;"><button class="btn btn-warning btn-xs">Fix &amp; Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- END SCHEDULE TAB -->
+
+    </div>
+    <!-- END EXPORT SECTION -->
+
+    <!-- Placeholder sections for admin nav items -->
+    <div id="section-settings" class="section-page">
+      <div class="page-header"><div class="page-header-left"><div class="page-title">Configuration</div><div class="page-subtitle">System-wide settings and preferences</div></div></div>
+      <div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">🔧</div><div class="empty-state-text">Configuration Panel</div><div class="empty-state-sub">System configuration settings would appear here</div></div></div></div>
+    </div>
+    <div id="section-users" class="section-page">
+      <div class="page-header"><div class="page-header-left"><div class="page-title">Users &amp; Roles</div><div class="page-subtitle">Manage team access and permissions</div></div></div>
+      <div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">User Management</div><div class="empty-state-sub">User accounts and role-based access controls would appear here</div></div></div></div>
+    </div>
+    <div id="section-audit" class="section-page">
+      <div class="page-header"><div class="page-header-left"><div class="page-title">Audit &amp; Compliance</div><div class="page-subtitle">SOX compliance controls and audit trail</div></div></div>
+      <div class="card"><div class="card-body"><div class="empty-state"><div class="empty-state-icon">🛡️</div><div class="empty-state-text">Audit &amp; Compliance</div><div class="empty-state-sub">SOX controls, compliance reports, and full audit trail would appear here</div></div></div></div>
+    </div>
+
+  </main>
+</div>
+<!-- END MAIN WRAPPER -->
+
+<!-- ============================================================
+     SLIDE-IN PANEL: New / Edit Rule
+     ============================================================ -->
+<div class="overlay" id="panel-overlay" onclick="closeRulePanel()"></div>
+<div class="slide-panel" id="rule-panel">
+  <div class="slide-panel-header">
+    <div>
+      <div class="slide-panel-title">Edit Rule — Revenue Recognition</div>
+      <div style="font-size:12px; color:#64748B; margin-top:2px;">ASC606 · Journal Entry · v2.3.0-draft</div>
+    </div>
+    <span class="close-btn" onclick="closeRulePanel()">✕</span>
+  </div>
+  <div class="slide-panel-body">
+    <div class="form-section">
+      <div class="form-section-title">⚙️ Rule Identity</div>
+      <div class="form-group">
+        <label class="form-label">Rule Name <span class="required">*</span></label>
+        <input class="form-control" type="text" value="Revenue Recognition — ASC606">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-control"><option selected>Journal Entry</option><option>Transformation</option><option>Validation</option><option>Subledger</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source System</label>
+          <select class="form-control"><option selected>Salesforce Revenue Cloud</option><option>SAP S/4HANA</option><option>Oracle ERP Cloud</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <input class="form-control" type="number" value="1" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control"><option selected>Active</option><option>Draft</option><option>Deprecated</option></select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" rows="3">Applies ASC 606 revenue recognition criteria to Salesforce opportunity data. Allocates transaction price to performance obligations and records journal entries upon POB satisfaction.</textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">📋 Conditions</div>
+      <div class="condition-row">
+        <select style="flex:1.5; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;"><option selected>Opportunity.StageName</option><option>Opportunity.Amount</option></select>
+        <select style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;"><option selected>equals</option><option>not equals</option></select>
+        <input style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;" value="Closed Won">
+        <span class="cond-delete">✕</span>
+      </div>
+      <div class="condition-connector">AND</div>
+      <div class="condition-row">
+        <select style="flex:1.5; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;"><option>Opportunity.StageName</option><option selected>Opportunity.Amount</option></select>
+        <select style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;"><option>equals</option><option selected>greater than</option></select>
+        <input style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;" value="0">
+        <span class="cond-delete">✕</span>
+      </div>
+      <button class="btn btn-secondary btn-xs mt-8">+ Add Condition</button>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">📝 Journal Entry Lines</div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="form-group" style="margin:0;"><label class="form-label">Debit Account</label><input class="form-control" value="1200 — Accounts Receivable"></div>
+        <div class="form-group" style="margin:0;"><label class="form-label">Amount Formula</label><input class="form-control" value="Opportunity.Amount"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="form-group" style="margin:0;"><label class="form-label">Credit Account</label><input class="form-control" value="4000 — Revenue — SaaS Subscriptions"></div>
+        <div class="form-group" style="margin:0;"><label class="form-label">Ledger</label><select class="form-control"><option selected>Corporate Ledger (USD)</option><option>Statutory Ledger (EUR)</option></select></div>
+      </div>
+      <div class="form-group" style="margin:0;"><label class="form-label">Cost Center</label><input class="form-control" value="CC-SALES-001"></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">🗓️ Scheduling &amp; Approvals</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Effective Date</label><input class="form-control" type="date" value="2026-01-01"></div>
+        <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-control" type="date" value="2026-12-31"></div>
+      </div>
+      <div class="toggle-row">
+        <div><div class="toggle-label">Approval Required</div><div class="toggle-desc">Requires 2-person sign-off before production deploy</div></div>
+        <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+
+    <div style="background:#FFFBEB; border:1px solid #FDE68A; border-radius:8px; padding:12px; font-size:12.5px; color:#92400E; margin-top:4px;">
+      <strong>⚠️ Change Impact:</strong> Modifying this active rule will create a new version (v2.3.1) and require re-approval before production deployment. Current v2.3.0 will remain active.
+    </div>
+  </div>
+  <div class="slide-panel-footer">
+    <button class="btn btn-secondary" onclick="closeRulePanel()">Cancel</button>
+    <button class="btn btn-warning">💾 Save as New Draft</button>
+    <button class="btn btn-secondary">📋 Submit for Review</button>
+    <button class="btn btn-success" onclick="closeRulePanel()">✓ Save Changes</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// NAVIGATION
+// ============================================================
+const sectionMap = {
+  dashboard: 'Dashboard',
+  rules: 'Rule Engine',
+  ingestion: 'Data Ingestion',
+  reports: 'Reports & Visualization',
+  export: 'Export & Integration',
+  settings: 'Configuration',
+  users: 'Users & Roles',
+  audit: 'Audit & Compliance'
+};
+
+function navigate(section) {
+  // Hide all sections
+  document.querySelectorAll('.section-page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+  // Show target section
+  const target = document.getElementById('section-' + section);
+  if (target) target.classList.add('active');
+
+  // Set active nav
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') === `navigate('${section}')`) {
+      el.classList.add('active');
+    }
+  });
+
+  // Update breadcrumb
+  document.getElementById('header-section-name').textContent = sectionMap[section] || section;
+
+  // Init charts if needed
+  if (section === 'dashboard') initDashboardCharts();
+  if (section === 'reports') initReportCharts();
+  if (section === 'ingestion') initIngestionCharts();
+}
+
+// ============================================================
+// SUB-TABS
+// ============================================================
+function switchSubTab(section, tab) {
+  // Find all subtab-contents within this section
+  const sectionEl = document.getElementById('section-' + section);
+  if (!sectionEl) return;
+
+  sectionEl.querySelectorAll('.subtab-content').forEach(el => el.classList.remove('active'));
+  sectionEl.querySelectorAll('.subtab').forEach(el => el.classList.remove('active'));
+
+  const tabEl = document.getElementById(section + '-' + tab);
+  if (tabEl) tabEl.classList.add('active');
+
+  // Set active subtab button
+  const subtabBtns = sectionEl.querySelectorAll('.subtab');
+  subtabBtns.forEach(btn => {
+    if (btn.getAttribute('onclick') === `switchSubTab('${section}','${tab}')`) {
+      btn.classList.add('active');
+    }
+  });
+
+  // Init charts for specific tabs
+  if (section === 'ingestion' && tab === 'preview') {
+    setTimeout(initIngestionCharts, 50);
+  }
+}
+
+// ============================================================
+// SLIDE PANEL
+// ============================================================
+function openRulePanel() {
+  document.getElementById('rule-panel').classList.add('show');
+  document.getElementById('panel-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRulePanel() {
+  document.getElementById('rule-panel').classList.remove('show');
+  document.getElementById('panel-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function toggleNotifications() {
+  document.getElementById('notif-dropdown').classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('notif-btn');
+  const dropdown = document.getElementById('notif-dropdown');
+  if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.classList.remove('show');
+  }
+});
+
+// ============================================================
+// ADD CONDITION ROW (BUILDER)
+// ============================================================
+function addConditionRow() {
+  const container = document.getElementById('conditions-container');
+  const connector = document.createElement('div');
+  connector.className = 'condition-connector';
+  connector.textContent = 'AND';
+
+  const row = document.createElement('div');
+  row.className = 'condition-row';
+  row.innerHTML = `
+    <select style="flex:1.5; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+      <option>Select Field…</option>
+      <option>Opportunity.StageName</option>
+      <option>Opportunity.Amount</option>
+      <option>Opportunity.CloseDate</option>
+      <option>Contract.Status</option>
+      <option>Account.Type</option>
+    </select>
+    <select style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;">
+      <option>equals</option>
+      <option>not equals</option>
+      <option>greater than</option>
+      <option>less than</option>
+      <option>contains</option>
+      <option>is null</option>
+      <option>is not null</option>
+    </select>
+    <input style="flex:1; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px; font-size:12.5px; outline:none;" placeholder="Value">
+    <span class="cond-delete" onclick="removeRow(this)">✕</span>
+  `;
+  container.appendChild(connector);
+  container.appendChild(row);
+}
+
+function removeRow(el) {
+  const row = el.closest('.condition-row');
+  // Also remove preceding connector if exists
+  const prev = row.previousElementSibling;
+  if (prev && prev.className === 'condition-connector') prev.remove();
+  row.remove();
+}
+
+// ============================================================
+// DATE RANGE PICKER
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.drp-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.date-range-picker').querySelectorAll('.drp-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+
+// ============================================================
+// CHART.JS — DASHBOARD
+// ============================================================
+let dashCharts = {};
+let reportCharts = {};
+let ingestionCharts = {};
+
+function initDashboardCharts() {
+  if (dashCharts.jeVolume) return; // Already initialized
+
+  // Generate 30 days of mock data
+  const days = [];
+  const jeVolume = [];
+  const now = new Date(2026, 2, 13); // March 13, 2026
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    // Simulate lower volume on weekends, higher mid-month
+    const dow = d.getDay();
+    const isWeekend = (dow === 0 || dow === 6);
+    const base = isWeekend ? 4000 : 22000;
+    const variation = Math.floor(Math.random() * 8000) - 4000;
+    jeVolume.push(Math.max(1200, base + variation));
+  }
+
+  // JE Volume Line Chart
+  const jeCtx = document.getElementById('chart-je-volume');
+  if (jeCtx) {
+    dashCharts.jeVolume = new Chart(jeCtx, {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Journal Entries',
+          data: jeVolume,
+          borderColor: '#2563EB',
+          backgroundColor: 'rgba(37,99,235,0.08)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#2563EB',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#94A3B8',
+              font: { size: 10 },
+              maxTicksLimit: 8,
+              maxRotation: 0
+            }
+          },
+          y: {
+            grid: { color: '#F1F5F9' },
+            ticks: {
+              color: '#94A3B8',
+              font: { size: 10 },
+              callback: v => v >= 1000 ? (v/1000).toFixed(0) + 'k' : v
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Rule Type Bar Chart
+  const rtCtx = document.getElementById('chart-rule-type');
+  if (rtCtx) {
+    dashCharts.ruleType = new Chart(rtCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Journal Entry', 'Transformation', 'Validation', 'Subledger'],
+        datasets: [{
+          label: 'Executions',
+          data: [312040, 88440, 7200, 24000],
+          backgroundColor: ['#2563EB', '#7C3AED', '#10B981', '#F59E0B'],
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ' ' + ctx.parsed.y.toLocaleString() + ' executions'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#64748B', font: { size: 11 } }
+          },
+          y: {
+            grid: { color: '#F1F5F9' },
+            ticks: {
+              color: '#94A3B8',
+              font: { size: 10 },
+              callback: v => v >= 1000 ? (v/1000).toFixed(0) + 'k' : v
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+// ============================================================
+// CHART.JS — REPORTS
+// ============================================================
+function initReportCharts() {
+  if (reportCharts.trend) return;
+
+  const days = [];
+  const executions = [];
+  const now = new Date(2026, 2, 13);
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    const dow = d.getDay();
+    const isWeekend = (dow === 0 || dow === 6);
+    const base = isWeekend ? 12000 : 28000;
+    executions.push(Math.max(5000, base + Math.floor(Math.random() * 10000) - 5000));
+  }
+
+  // Rule Execution Trend
+  const trendCtx = document.getElementById('chart-rule-trend');
+  if (trendCtx) {
+    reportCharts.trend = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Executions',
+          data: executions,
+          borderColor: '#2563EB',
+          backgroundColor: 'rgba(37,99,235,0.06)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 10 }, maxTicksLimit: 7, maxRotation: 0 } },
+          y: { grid: { color: '#F1F5F9' }, ticks: { color: '#94A3B8', font: { size: 10 }, callback: v => (v/1000).toFixed(0) + 'k' } }
+        }
+      }
+    });
+  }
+
+  // Source Volume Doughnut
+  const sourceCtx = document.getElementById('chart-source-volume');
+  if (sourceCtx) {
+    reportCharts.source = new Chart(sourceCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['SAP S/4HANA', 'Oracle ERP', 'Salesforce', 'Snowflake', 'Other'],
+        datasets: [{
+          data: [38.2, 21.4, 16.8, 14.1, 9.5],
+          backgroundColor: ['#2563EB', '#7C3AED', '#10B981', '#F59E0B', '#64748B'],
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '%' } }
+        }
+      }
+    });
+  }
+
+  // Exception Rate Bar
+  const exCtx = document.getElementById('chart-exception-rate');
+  if (exCtx) {
+    reportCharts.exception = new Chart(exCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Journal Entry', 'Transformation', 'Validation', 'Subledger'],
+        datasets: [{
+          label: 'Exceptions per 1k',
+          data: [0.32, 3.96, 4.17, 0.00],
+          backgroundColor: ['rgba(37,99,235,0.8)', 'rgba(124,58,237,0.8)', 'rgba(239,68,68,0.8)', 'rgba(16,185,129,0.8)'],
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } },
+          y: { grid: { color: '#F1F5F9' }, ticks: { color: '#94A3B8', font: { size: 10 } }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // JE Distribution Horizontal Bar
+  const jeDistCtx = document.getElementById('chart-je-distribution');
+  if (jeDistCtx) {
+    reportCharts.jeDist = new Chart(jeDistCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Revenue', 'Accounts Receivable', 'Accounts Payable', 'Fixed Assets', 'Cash & Equivalents', 'Equity', 'Liabilities'],
+        datasets: [{
+          label: 'Entries',
+          data: [8420, 7841, 4320, 2188, 3104, 1840, 2840],
+          backgroundColor: '#2563EB',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#F1F5F9' }, ticks: { color: '#94A3B8', font: { size: 10 }, callback: v => (v/1000).toFixed(1) + 'k' } },
+          y: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } }
+        }
+      }
+    });
+  }
+}
+
+// ============================================================
+// CHART.JS — INGESTION / DATA PREVIEW
+// ============================================================
+function initIngestionCharts() {
+  if (ingestionCharts.currency) return;
+
+  const currCtx = document.getElementById('chart-currency-dist');
+  if (currCtx) {
+    ingestionCharts.currency = new Chart(currCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['USD', 'EUR', 'GBP', 'JPY', 'Other'],
+        datasets: [{
+          data: [58, 22, 8, 7, 5],
+          backgroundColor: ['#2563EB', '#10B981', '#F59E0B', '#7C3AED', '#94A3B8'],
+          borderWidth: 0,
+          hoverOffset: 5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { font: { size: 11 }, color: '#475569', padding: 12, boxWidth: 10 }
+          },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.parsed + '%' } }
+        }
+      }
+    });
+  }
+}
+
+// ============================================================
+// INIT ON LOAD
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  initDashboardCharts();
+});
+</script>
+</body>
+</html>
