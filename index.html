@@ -918,6 +918,10 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     <span class="nav-icon">📤</span>
     <span>Export &amp; Integration</span>
   </div>
+  <div class="nav-item" onclick="navigate('subledger')">
+    <span class="nav-icon">📒</span>
+    <span>Subledger</span>
+  </div>
 
   <div class="sidebar-section-label">Administration</div>
   <div class="nav-item" onclick="navigate('settings')">
@@ -1261,8 +1265,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
       <div class="subtabs" id="rule-subtabs">
         <div class="subtab active" onclick="switchSubTab('rules','library')">📚 Library</div>
-        <div class="subtab" onclick="switchSubTab('rules','builder')">🔨 Builder</div>
-        <div class="subtab" onclick="switchSubTab('rules','deployment')">🚀 Deployment</div>
+        <div class="subtab" onclick="switchSubTab('rules','builder')">🔨 Visual Builder</div>
+        <div class="subtab" onclick="switchSubTab('rules','execution')">▶ Execute Pipeline</div>
         <div class="subtab" onclick="switchSubTab('rules','history')">📜 History</div>
       </div>
 
@@ -1558,11 +1562,171 @@ textarea.form-control { resize: vertical; min-height: 80px; }
           </div>
         </div>
       </div>
+        <!-- LIVE DYNAMIC RULE CARDS -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E2E8F0">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:13px;font-weight:600;color:#1E293B">⚡ Live Rules from Engine (10 built-in + custom)</div>
+            <button class="btn btn-primary btn-sm" onclick="switchSubTab('rules','execution');runRuleEngine()">▶ Run Pipeline</button>
+          </div>
+          <div id="dynamic-rule-cards">
+            <div style="color:#94A3B8;padding:16px">Loading rules…</div>
+          </div>
+        </div>
+      </div>
       <!-- END LIBRARY TAB -->
 
-      <!-- BUILDER TAB -->
+      <!-- BUILDER TAB — VISUAL RULE BUILDER -->
       <div id="rules-builder" class="subtab-content">
         <div class="grid-2" style="gap:20px; align-items:start;">
+          <!-- LEFT: live builder form -->
+          <div>
+            <div class="card mb-16">
+              <div class="card-header"><div class="card-title">① Rule Identity</div></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Rule Name <span class="required">*</span></label>
+                  <input class="form-control" id="builder-name" oninput="updateRulePreview()" placeholder="e.g. New Business Written Premium">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" id="builder-desc" oninput="updateRulePreview()" rows="2" placeholder="Describe when this rule applies…"></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Priority (1=highest)</label>
+                    <input class="form-control" id="builder-priority" type="number" value="50" min="1" max="100" oninput="updateRulePreview()">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" id="builder-status" onchange="updateRulePreview()">
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mb-16">
+              <div class="card-header"><div class="card-title">② Scope</div></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Line of Business</label>
+                  <div id="builder-lob-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="PersonalAuto"> PersonalAuto</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="HomeOwners"> HomeOwners</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="CommercialProperty"> CommercialProperty</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="WorkersComp"> WorkersComp</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="GeneralLiability"> GeneralLiability</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;color:#2563EB"><input type="checkbox" value="*" checked> All (*)</label>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label class="form-label">Transaction Types</label>
+                  <div id="builder-tx-checks" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="New Business"> New Business</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="Renewal"> Renewal</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="Endorsement"> Endorsement</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px"><input type="checkbox" value="Cancellation"> Cancellation</label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;color:#2563EB"><input type="checkbox" value="*" checked> All (*)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mb-16">
+              <div class="card-header">
+                <div class="card-title">③ Conditions (AND logic)</div>
+                <button class="btn btn-secondary btn-xs" onclick="addConditionRowLive()">+ Add Condition</button>
+              </div>
+              <div class="card-body">
+                <div id="builder-conditions">
+                  <!-- rows added dynamically -->
+                </div>
+                <div style="font-size:11.5px;color:#94A3B8;margin-top:4px">Leave empty to match all events</div>
+              </div>
+            </div>
+
+            <div class="card mb-16">
+              <div class="card-header">
+                <div class="card-title">④ Journal Entry Actions</div>
+                <button class="btn btn-secondary btn-xs" onclick="addActionRowLive()">+ Add Action</button>
+              </div>
+              <div class="card-body">
+                <div id="builder-actions">
+                  <!-- rows added dynamically -->
+                </div>
+                <div style="font-size:11.5px;color:#94A3B8;margin-top:4px">Each action creates one DR/CR pair</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="saveRuleFromBuilder()">💾 Save Rule to Library</button>
+              <button class="btn btn-secondary" onclick="clearRuleBuilder()">✕ Clear</button>
+            </div>
+          </div>
+
+          <!-- RIGHT: live preview -->
+          <div>
+            <div class="card" style="position:sticky;top:16px">
+              <div class="card-header"><div class="card-title">Live Preview</div></div>
+              <div class="card-body">
+                <div id="rule-preview-card">
+                  <div style="color:#94A3B8;font-size:12.5px">Fill in the form to see a preview…</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+<!-- END OF NEW BUILDER FORM -- close old builder's opening divs -->
+      </div>
+      <!-- END BUILDER TAB -->
+
+      <!-- EXECUTION PIPELINE TAB -->
+      <div id="rules-execution" class="subtab-content">
+        <div class="card mb-16">
+          <div class="card-header">
+            <div class="card-title">▶ Run Full Pipeline</div>
+            <button class="btn btn-primary btn-sm" onclick="runRuleEngine()">▶ Execute</button>
+          </div>
+          <div class="card-body">
+            <div style="font-size:12.5px;color:#64748B;margin-bottom:16px">
+              Runs ingested GWPC policy events through all active rules, generates journal entries, and posts to the Subledger.
+              Load data first via <strong>Data Ingestion → Sources → Load Data</strong>.
+            </div>
+            <!-- Pipeline steps -->
+            <div style="display:flex;gap:0;align-items:center;margin-bottom:20px">
+              <div id="step-load" class="pipeline-step pipeline-step-pending" style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div style="width:36px;height:36px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:4px">1</div>
+                <div style="font-size:11px;color:#64748B;text-align:center">Load Data</div>
+              </div>
+              <div style="flex:1;height:2px;background:#E2E8F0;margin-bottom:16px"></div>
+              <div id="step-transform" class="pipeline-step pipeline-step-pending" style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div style="width:36px;height:36px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:4px">2</div>
+                <div style="font-size:11px;color:#64748B;text-align:center">Transform</div>
+              </div>
+              <div style="flex:1;height:2px;background:#E2E8F0;margin-bottom:16px"></div>
+              <div id="step-execute" class="pipeline-step pipeline-step-pending" style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div style="width:36px;height:36px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:4px">3</div>
+                <div style="font-size:11px;color:#64748B;text-align:center">Execute Rules</div>
+              </div>
+              <div style="flex:1;height:2px;background:#E2E8F0;margin-bottom:16px"></div>
+              <div id="step-post" class="pipeline-step pipeline-step-pending" style="display:flex;flex-direction:column;align-items:center;flex:1">
+                <div style="width:36px;height:36px;border-radius:50%;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:4px">4</div>
+                <div style="font-size:11px;color:#64748B;text-align:center">Post to Subledger</div>
+              </div>
+            </div>
+            <div id="execution-results"></div>
+          </div>
+        </div>
+      </div>
+      <!-- END EXECUTION PIPELINE TAB -->
+
+      <!-- HISTORY TAB (repurposed) -->
+      <div id="rules-history-x" class="subtab-content" style="display:none"><!-- placeholder --></div>
+      <!-- REAL HISTORY TAB: merged below -->
+      <div id="SKIP_OLD_DEPLOYMENT" style="display:none">
           <div>
             <!-- Rule Metadata -->
             <div class="card mb-16">
@@ -1910,6 +2074,17 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
       <!-- HISTORY TAB -->
       <div id="rules-history" class="subtab-content">
+        <!-- Live execution run history -->
+        <div class="card mb-16">
+          <div class="card-header">
+            <div class="card-title">⚡ Pipeline Execution Runs</div>
+            <button class="btn btn-secondary btn-xs" onclick="renderExecHistory()">↺ Refresh</button>
+          </div>
+          <div class="card-body">
+            <div id="exec-history-table"><div style="color:#94A3B8;font-size:12.5px">No runs yet. Use Execute Pipeline tab.</div></div>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center mb-16">
           <div class="flex gap-8 items-center">
             <div class="search-input-wrap" style="max-width:280px;">
@@ -1982,6 +2157,13 @@ textarea.form-control { resize: vertical; min-height: 80px; }
       </div>
       <!-- END HISTORY TAB -->
 
+      <!-- LIVE EXECUTION HISTORY (appended to history tab) -->
+      <style>
+        .pipeline-step-done > div:first-child { background:#D1FAE5 !important; color:#065F46 !important; }
+        .pipeline-step-active > div:first-child { background:#DBEAFE !important; color:#1D4ED8 !important; }
+        .pipeline-step-pending > div:first-child { background:#E2E8F0 !important; color:#94A3B8 !important; }
+      </style>
+
     </div>
     <!-- END RULE ENGINE SECTION -->
 
@@ -2004,10 +2186,36 @@ textarea.form-control { resize: vertical; min-height: 80px; }
         <div class="subtab active" onclick="switchSubTab('ingestion','sources')">🔌 Sources</div>
         <div class="subtab" onclick="switchSubTab('ingestion','pipelines')">⚡ Pipelines</div>
         <div class="subtab" onclick="switchSubTab('ingestion','preview')">👁️ Data Preview</div>
+        <div class="subtab" onclick="switchSubTab('ingestion','transformation');renderTransformationTab()">🔄 Transformation</div>
       </div>
 
       <!-- SOURCES TAB -->
       <div id="ingestion-sources" class="subtab-content active">
+
+        <!-- GUIDEWIRE POLICY CENTER SOURCE -->
+        <div class="card mb-16" style="border-left:4px solid #2563EB">
+          <div class="card-header">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:20px">🏛️</span> Guidewire PolicyCenter
+              <span id="gwpc-status-badge" style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">Not Loaded</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-size:12px;color:#64748B;display:inline-block" id="gwpc-spinner" style="display:none">⏳</span>
+              <button class="btn btn-primary btn-sm" id="gwpc-load-btn" onclick="loadGWPCData()">📥 Load Data</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:24px;margin-bottom:12px;flex-wrap:wrap">
+              <div style="font-size:12px;color:#64748B"><strong>Source file:</strong> data/guidewire_policy_center.csv</div>
+              <div style="font-size:12px;color:#64748B"><strong>Records:</strong> 60 policies</div>
+              <div style="font-size:12px;color:#64748B"><strong>Lines of Business:</strong> PersonalAuto, HomeOwners, CommercialProperty, WorkersComp, GeneralLiability</div>
+              <div style="font-size:12px;color:#64748B"><strong>Total GWP:</strong> ~$903,810</div>
+            </div>
+            <div id="gwpc-transform-stats"></div>
+            <div id="gwpc-report"></div>
+          </div>
+        </div>
+
         <!-- ERP Systems -->
         <div class="source-category">
           <div class="source-category-title">🏢 ERP Systems</div>
@@ -2432,6 +2640,27 @@ textarea.form-control { resize: vertical; min-height: 80px; }
       </div>
       <!-- END PREVIEW TAB -->
 
+      <!-- TRANSFORMATION TAB -->
+      <div id="ingestion-transformation" class="subtab-content">
+        <div class="card mb-16">
+          <div class="card-header">
+            <div class="card-title">Insurance Accounting — Chart of Accounts</div>
+          </div>
+          <div class="card-body">
+            <div id="accounts-table"><div style="color:#94A3B8;font-size:12.5px">Load GWPC data first to activate transformation layer.</div></div>
+          </div>
+        </div>
+        <div class="card mb-16">
+          <div class="card-header"><div class="card-title">LOB Premium Summary — Transformed Events</div></div>
+          <div class="card-body"><div id="transform-lob-table"><div style="color:#94A3B8;font-size:12.5px">No data yet. Click Load Data on the Sources tab.</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Policy Events (first 20)</div></div>
+          <div class="card-body"><div id="transform-events-table"><div style="color:#94A3B8;font-size:12.5px">No data yet.</div></div></div>
+        </div>
+      </div>
+      <!-- END TRANSFORMATION TAB -->
+
     </div>
     <!-- END DATA INGESTION SECTION -->
 
@@ -2609,6 +2838,58 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
       <!-- JOBS TAB -->
       <div id="export-jobs" class="subtab-content active">
+
+        <!-- LIVE ERP EXPORT PANEL -->
+        <div class="card mb-16" style="border-left:4px solid #10B981">
+          <div class="card-header">
+            <div class="card-title" style="display:flex;align-items:center;gap:8px">
+              <span>📤</span> Export Subledger to ERP
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+              <div>
+                <label style="font-size:11px;color:#64748B;display:block;margin-bottom:4px">ERP Format</label>
+                <select class="form-control" id="export-format-select" style="width:190px">
+                  <option value="standard">Standard CSV (all fields)</option>
+                  <option value="sap_gl">SAP GL Interface</option>
+                  <option value="oracle_gl">Oracle GL Interface</option>
+                  <option value="dynamics365">Microsoft Dynamics 365</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;color:#64748B;display:block;margin-bottom:4px">Date Format</label>
+                <select class="form-control" id="export-date-format" style="width:140px">
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;color:#64748B;display:block;margin-bottom:4px">Period Filter</label>
+                <select class="form-control" id="export-period-filter" style="width:120px">
+                  <option value="">All Periods</option>
+                  <option>2024-01</option><option>2024-06</option><option>2024-12</option>
+                  <option>2025-01</option><option>2025-06</option><option>2025-10</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;color:#64748B;display:block;margin-bottom:4px">LOB Filter</label>
+                <select class="form-control" id="export-lob-filter" style="width:170px">
+                  <option value="">All LOBs</option>
+                  <option>PersonalAuto</option><option>HomeOwners</option>
+                  <option>CommercialProperty</option><option>WorkersComp</option><option>GeneralLiability</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <button class="btn btn-secondary btn-sm" onclick="validateCurrentExport()">🔍 Validate</button>
+              <button class="btn btn-primary btn-sm" onclick="runExport()">⬇️ Export &amp; Download CSV</button>
+            </div>
+            <div id="export-validation-result"></div>
+            <div id="export-manifest"></div>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center mb-16">
           <div class="flex gap-8 items-center">
             <div class="search-input-wrap" style="max-width:260px;">
@@ -2927,6 +3208,117 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     </div>
     <!-- END EXPORT SECTION -->
 
+    <!-- ============================================================
+         SECTION 6: SUBLEDGER — JOURNAL ENTRY STORE
+         ============================================================ -->
+    <div id="section-subledger" class="section-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Subledger — Journal Entry Store</div>
+          <div class="page-subtitle">In-memory SQL subledger generated by rule execution. Run the pipeline to populate.</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary btn-sm" onclick="refreshSubledger({})">↺ Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="switchSubTab('subledger','sql');showSQLView()">🗄️ SQL View</button>
+        </div>
+      </div>
+
+      <div class="subtabs">
+        <div class="subtab active" onclick="switchSubTab('subledger','je')">📋 Journal Entries</div>
+        <div class="subtab" onclick="switchSubTab('subledger','tb')">⚖️ Trial Balance</div>
+        <div class="subtab" onclick="switchSubTab('subledger','periods');renderPeriodSummaries()">📅 Period Summary</div>
+        <div class="subtab" onclick="switchSubTab('subledger','sql');showSQLView()">🗄️ SQL View</div>
+      </div>
+
+      <!-- JOURNAL ENTRIES TAB -->
+      <div id="subledger-je" class="subtab-content active">
+        <!-- Stats -->
+        <div id="subledger-stats" style="margin-bottom:16px">
+          <div style="color:#94A3B8;font-size:12.5px;padding:8px">Run the Rule Engine pipeline to generate journal entries.</div>
+        </div>
+        <!-- Filters -->
+        <div class="filter-bar" style="margin-bottom:12px">
+          <select class="form-control" id="sl-filter-period" style="width:130px">
+            <option value="">All Periods</option>
+            <option>2024-01</option><option>2024-02</option><option>2024-03</option><option>2024-04</option>
+            <option>2024-05</option><option>2024-06</option><option>2024-07</option><option>2024-08</option>
+            <option>2024-09</option><option>2024-10</option><option>2024-11</option><option>2024-12</option>
+            <option>2025-01</option><option>2025-02</option><option>2025-03</option><option>2025-04</option>
+            <option>2025-05</option><option>2025-06</option><option>2025-07</option><option>2025-08</option>
+            <option>2025-09</option><option>2025-10</option><option>2025-11</option><option>2025-12</option>
+          </select>
+          <select class="form-control" id="sl-filter-lob" style="width:170px">
+            <option value="">All LOBs</option>
+            <option>PersonalAuto</option><option>HomeOwners</option><option>CommercialProperty</option>
+            <option>WorkersComp</option><option>GeneralLiability</option>
+          </select>
+          <select class="form-control" id="sl-filter-status" style="width:130px">
+            <option value="">All Status</option>
+            <option value="posted">Posted</option>
+            <option value="pending">Pending</option>
+          </select>
+          <div class="search-input-wrap" style="min-width:200px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="sl-filter-search" placeholder="Search policy, account…">
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="applySubledgerFilters()">Apply Filters</button>
+          <button class="btn btn-secondary btn-sm" onclick="refreshSubledger({})">Clear</button>
+        </div>
+        <div id="subledger-je-table" style="overflow-x:auto">
+          <div style="color:#94A3B8;padding:24px;text-align:center">No journal entries yet. Run pipeline via Rule Engine → Execute Pipeline.</div>
+        </div>
+      </div>
+
+      <!-- TRIAL BALANCE TAB -->
+      <div id="subledger-tb" class="subtab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Trial Balance</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select class="form-control" id="tb-period-select" style="width:130px">
+                <option value="">All Periods</option>
+                <option>2024-01</option><option>2024-02</option><option>2024-03</option><option>2024-06</option>
+                <option>2024-09</option><option>2024-12</option><option>2025-01</option><option>2025-06</option><option>2025-10</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="generateTrialBalance()">Generate</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="trial-balance-table">
+              <div style="color:#94A3B8;font-size:12.5px">Select period and click Generate.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERIOD SUMMARY TAB -->
+      <div id="subledger-periods" class="subtab-content">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Period Summaries</div></div>
+          <div class="card-body">
+            <div id="period-summaries">
+              <div style="color:#94A3B8;font-size:12.5px">No data yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SQL VIEW TAB -->
+      <div id="subledger-sql" class="subtab-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗄️ SQL — journal_entries table</div>
+            <button class="btn btn-secondary btn-sm" onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('sql-view-code').textContent).then(function(){showToast('Copied to clipboard')})">📋 Copy</button>
+          </div>
+          <div class="card-body" style="padding:0">
+            <pre id="sql-view-code" style="background:#0F172A;color:#E2E8F0;font-family:'Courier New',monospace;font-size:11.5px;padding:16px;margin:0;overflow:auto;max-height:600px;border-radius:0 0 10px 10px;line-height:1.5">-- Run the pipeline to generate SQL</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- END SUBLEDGER SECTION -->
+
     <!-- Placeholder sections for admin nav items -->
     <div id="section-settings" class="section-page">
       <div class="page-header"><div class="page-header-left"><div class="page-title">Configuration</div><div class="page-subtitle">System-wide settings and preferences</div></div></div>
@@ -3057,7 +3449,8 @@ const sectionMap = {
   export: 'Export & Integration',
   settings: 'Configuration',
   users: 'Users & Roles',
-  audit: 'Audit & Compliance'
+  audit: 'Audit & Compliance',
+  subledger: 'Subledger — Journal Entry Store'
 };
 
 function navigate(section) {
@@ -3083,6 +3476,8 @@ function navigate(section) {
   if (section === 'dashboard') initDashboardCharts();
   if (section === 'reports') initReportCharts();
   if (section === 'ingestion') initIngestionCharts();
+  if (section === 'subledger') { refreshSubledger({}); renderPeriodSummaries(); }
+  if (section === 'rules') renderRuleLibrary();
 }
 
 // ============================================================
@@ -3486,7 +3881,619 @@ function initIngestionCharts() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
   initDashboardCharts();
+  // Initialize live modules when available
+  setTimeout(function() {
+    if (window.RulesEngine) {
+      ruleStore = window.RulesEngine.createRuleStore();
+      renderRuleLibrary();
+    }
+    if (window.Subledger) {
+      subledgerStore = window.Subledger.createSubledger();
+    }
+    if (window.InsuranceTransformation) {
+      renderAccountsTable();
+    }
+  }, 100);
 });
+</script>
+<script src="js/ingestion.js"></script>
+<script src="js/transformation.js"></script>
+<script src="js/rules-engine.js"></script>
+<script src="js/subledger.js"></script>
+<script src="js/export.js"></script>
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+var gwpcRawData    = null;   // parseCSV result
+var policyEvents   = null;   // transformAll result
+var ruleStore      = null;   // createRuleStore() result
+var lastExecResult = null;   // executeAllRules result
+var subledgerStore = null;   // createSubledger() result
+var execHistory    = [];     // array of run summaries
+
+// ============================================================
+// DATA INGESTION — GWPC LOADER
+// ============================================================
+function loadGWPCData() {
+  if (!window.GWPCIngestion) { alert('Ingestion module not loaded'); return; }
+  var btn = document.getElementById('gwpc-load-btn');
+  var spinner = document.getElementById('gwpc-spinner');
+  var report = document.getElementById('gwpc-report');
+  if (btn) btn.disabled = true;
+  if (spinner) spinner.style.display = 'inline-block';
+  if (report) report.innerHTML = '<div style="color:#64748B;padding:12px;">Loading…</div>';
+
+  window.GWPCIngestion.loadSampleData().then(function(result) {
+    gwpcRawData = result;
+    if (report) report.innerHTML = window.GWPCIngestion.buildIngestionReport(result);
+
+    // Transform
+    if (window.InsuranceTransformation) {
+      policyEvents = window.InsuranceTransformation.transformAll(result.rows);
+      var stats = window.InsuranceTransformation.getTransformationStats(policyEvents);
+      var transEl = document.getElementById('gwpc-transform-stats');
+      if (transEl) {
+        transEl.innerHTML =
+          '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">' +
+          kpiMini('Events', policyEvents.length) +
+          kpiMini('Total GWP', '$' + fmtNum(stats.totalGWP)) +
+          kpiMini('Earned Premium', '$' + fmtNum(stats.totalEarnedPremium)) +
+          kpiMini('Unearned Premium', '$' + fmtNum(stats.totalUnearnedPremium)) +
+          kpiMini('Commission', '$' + fmtNum(stats.totalCommission)) +
+          kpiMini('Loss Reserve', '$' + fmtNum(stats.totalLossReserve)) +
+          '</div>';
+      }
+      renderTransformationTab();
+    }
+
+    // Badge update
+    var badge = document.getElementById('gwpc-status-badge');
+    if (badge) { badge.textContent = 'Loaded'; badge.style.background = '#D1FAE5'; badge.style.color = '#065F46'; }
+    if (btn) { btn.textContent = '↺ Reload'; btn.disabled = false; }
+    if (spinner) spinner.style.display = 'none';
+  }).catch(function(err) {
+    if (report) report.innerHTML = '<div style="color:#EF4444;padding:12px;">Error: ' + err.message + '</div>';
+    if (btn) { btn.disabled = false; }
+    if (spinner) spinner.style.display = 'none';
+  });
+}
+
+function kpiMini(label, value) {
+  return '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 16px;min-width:140px;">' +
+    '<div style="font-size:11px;color:#64748B;margin-bottom:2px;">' + label + '</div>' +
+    '<div style="font-size:16px;font-weight:700;color:#1E293B;">' + value + '</div>' +
+    '</div>';
+}
+
+function fmtNum(n) {
+  return Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function renderTransformationTab() {
+  if (!policyEvents || !window.InsuranceTransformation) return;
+  var IT = window.InsuranceTransformation;
+  var lob = IT.summarizeByLineOfBusiness(policyEvents);
+
+  // LOB summary table
+  var lobEl = document.getElementById('transform-lob-table');
+  if (lobEl) {
+    var rows = lob.map(function(r) {
+      return '<tr>' +
+        '<td>' + r.lob + '</td>' +
+        '<td style="text-align:right">' + r.eventCount + '</td>' +
+        '<td style="text-align:right;color:#2563EB">$' + fmtNum(r.totalGross) + '</td>' +
+        '<td style="text-align:right;color:#10B981">$' + fmtNum(r.totalEarned) + '</td>' +
+        '<td style="text-align:right;color:#F59E0B">$' + fmtNum(r.totalUnearned) + '</td>' +
+        '<td style="text-align:right;color:#7C3AED">$' + fmtNum(r.totalCommission) + '</td>' +
+        '</tr>';
+    }).join('');
+    lobEl.innerHTML = '<table class="data-table"><thead><tr><th>Line of Business</th><th>Events</th><th>Gross Premium</th><th>Earned</th><th>Unearned</th><th>Commission</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  // Events preview table
+  var evEl = document.getElementById('transform-events-table');
+  if (evEl) {
+    var evRows = policyEvents.slice(0, 20).map(function(e) {
+      return '<tr>' +
+        '<td style="font-family:monospace;font-size:11px">' + e.eventId + '</td>' +
+        '<td><span class="badge badge-blue" style="font-size:10px">' + e.eventType + '</span></td>' +
+        '<td>' + e.policyNumber + '</td>' +
+        '<td>' + e.lineOfBusiness + '</td>' +
+        '<td>' + (e.accountingDate ? e.accountingDate.toISOString().slice(0,10) : '') + '</td>' +
+        '<td style="text-align:right">$' + fmtNum(e.amounts.grossPremium) + '</td>' +
+        '<td style="text-align:right">$' + fmtNum(e.amounts.earnedPremium) + '</td>' +
+        '<td style="text-align:right">$' + fmtNum(e.amounts.commission) + '</td>' +
+        '</tr>';
+    }).join('');
+    evEl.innerHTML = '<div style="font-size:12px;color:#64748B;margin-bottom:8px;">Showing first 20 of ' + policyEvents.length + ' policy events</div>' +
+      '<table class="data-table"><thead><tr><th>Event ID</th><th>Type</th><th>Policy</th><th>LOB</th><th>Date</th><th>Gross Premium</th><th>Earned</th><th>Commission</th></tr></thead><tbody>' + evRows + '</tbody></table>';
+  }
+
+  // Accounts table
+  renderAccountsTable();
+}
+
+function renderAccountsTable() {
+  var el = document.getElementById('accounts-table');
+  if (!el || !window.InsuranceTransformation) return;
+  var accts = window.InsuranceTransformation.INSURANCE_ACCOUNTS;
+  var rows = Object.keys(accts).map(function(key) {
+    var a = accts[key];
+    var typeColor = {Asset:'#2563EB', Liability:'#EF4444', Revenue:'#10B981', Expense:'#F59E0B'}[a.type] || '#64748B';
+    return '<tr>' +
+      '<td style="font-family:monospace">' + key + '</td>' +
+      '<td>' + a.code + '</td>' +
+      '<td>' + a.name + '</td>' +
+      '<td><span style="background:' + typeColor + '20;color:' + typeColor + ';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">' + a.type + '</span></td>' +
+      '<td>' + a.normalBalance + '</td>' +
+      '</tr>';
+  }).join('');
+  el.innerHTML = '<table class="data-table"><thead><tr><th>Key</th><th>Code</th><th>Account Name</th><th>Type</th><th>Normal Balance</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ============================================================
+// RULE ENGINE — LIBRARY RENDER
+// ============================================================
+function renderRuleLibrary() {
+  var el = document.getElementById('dynamic-rule-cards');
+  if (!el || !ruleStore) return;
+  var rules = ruleStore.rules;
+  var typeColors = {
+    'active': '#10B981', 'inactive': '#94A3B8', 'draft': '#F59E0B'
+  };
+  var html = rules.map(function(r) {
+    var statusColor = typeColors[r.status] || '#64748B';
+    var lobText = (r.lineOfBusiness || []).join(', ') || 'All';
+    var txText  = (r.transactionTypes || []).join(', ') || 'All';
+    return '<div class="rule-card" style="border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;background:#fff;margin-bottom:10px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+        '<div style="flex:1">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+            '<span style="font-weight:600;font-size:13.5px">' + r.name + '</span>' +
+            '<span style="background:' + statusColor + '20;color:' + statusColor + ';padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600">' + r.status.toUpperCase() + '</span>' +
+            '<span style="background:#EFF6FF;color:#2563EB;padding:1px 7px;border-radius:4px;font-size:11px">P' + r.priority + '</span>' +
+          '</div>' +
+          '<div style="font-size:12px;color:#64748B;margin-bottom:6px">' + r.description + '</div>' +
+          '<div style="display:flex;gap:12px;font-size:11px;color:#94A3B8">' +
+            '<span>LOB: <strong style="color:#475569">' + lobText + '</strong></span>' +
+            '<span>Tx: <strong style="color:#475569">' + txText + '</strong></span>' +
+            '<span>Conditions: <strong style="color:#475569">' + (r.conditions||[]).length + '</strong></span>' +
+            '<span>Actions: <strong style="color:#475569">' + (r.actions||[]).length + '</strong></span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;margin-left:12px">' +
+          '<button class="btn btn-secondary btn-xs" onclick="editRule(\'' + r.id + '\')">Edit</button>' +
+          '<button class="btn btn-secondary btn-xs" onclick="toggleRule(\'' + r.id + '\')">' + (r.status==='active'?'Disable':'Enable') + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+function editRule(id) {
+  if (!ruleStore) return;
+  var rule = ruleStore.getRuleById(id);
+  if (!rule) return;
+  openRulePanel();
+  // Populate panel title
+  var titleEl = document.querySelector('.slide-panel-title');
+  if (titleEl) titleEl.textContent = 'Edit Rule — ' + rule.name;
+}
+
+function toggleRule(id) {
+  if (!ruleStore) return;
+  var rule = ruleStore.getRuleById(id);
+  if (!rule) return;
+  ruleStore.updateRule(id, { status: rule.status === 'active' ? 'inactive' : 'active' });
+  renderRuleLibrary();
+}
+
+// ============================================================
+// RULE ENGINE — VISUAL BUILDER
+// ============================================================
+function addConditionRowLive() {
+  var container = document.getElementById('builder-conditions');
+  if (!container) return;
+  var idx = container.querySelectorAll('.builder-cond-row').length;
+  var div = document.createElement('div');
+  div.className = 'builder-cond-row';
+  div.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;';
+  div.innerHTML =
+    '<select onchange="updateRulePreview()" style="flex:1.5;padding:6px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:12px">' +
+      '<option value="">Select field…</option>' +
+      '<option value="eventType">eventType</option>' +
+      '<option value="lineOfBusiness">lineOfBusiness</option>' +
+      '<option value="transactionType">transactionType</option>' +
+      '<option value="amounts.grossPremium">amounts.grossPremium</option>' +
+      '<option value="amounts.commission">amounts.commission</option>' +
+      '<option value="amounts.lossReserve">amounts.lossReserve</option>' +
+      '<option value="amounts.unearnedPremium">amounts.unearnedPremium</option>' +
+      '<option value="amounts.earnedPremium">amounts.earnedPremium</option>' +
+    '</select>' +
+    '<select onchange="updateRulePreview()" style="flex:1;padding:6px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:12px">' +
+      '<option value="eq">= equals</option>' +
+      '<option value="neq">≠ not equals</option>' +
+      '<option value="gt">&gt; greater than</option>' +
+      '<option value="gte">≥ gte</option>' +
+      '<option value="lt">&lt; less than</option>' +
+      '<option value="lte">≤ lte</option>' +
+      '<option value="in">∈ in list</option>' +
+      '<option value="contains">contains</option>' +
+    '</select>' +
+    '<input oninput="updateRulePreview()" placeholder="Value" style="flex:1.2;padding:6px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:12px">' +
+    '<button onclick="this.closest(\'.builder-cond-row\').remove();updateRulePreview();" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:16px;padding:2px 6px">✕</button>';
+  container.appendChild(div);
+}
+
+function addActionRowLive() {
+  var container = document.getElementById('builder-actions');
+  if (!container) return;
+  var acctOptions = '';
+  if (window.InsuranceTransformation) {
+    var accts = window.InsuranceTransformation.INSURANCE_ACCOUNTS;
+    Object.keys(accts).forEach(function(k) {
+      acctOptions += '<option value="' + k + '">' + accts[k].code + ' — ' + accts[k].name + '</option>';
+    });
+  } else {
+    ['CASH','PREM_RECV','DEFER_ACQ','UNEARNED_PREM','LOSS_RESERVE','COMM_PAYABLE','TAX_PAYABLE','WRITTEN_PREM','EARNED_PREM','COMM_EXP','TAX_EXP','LOSS_EXP'].forEach(function(k) {
+      acctOptions += '<option value="' + k + '">' + k + '</option>';
+    });
+  }
+  var div = document.createElement('div');
+  div.className = 'builder-action-row';
+  div.style.cssText = 'border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#F8FAFC;';
+  div.innerHTML =
+    '<div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">' +
+      '<label style="font-size:11px;color:#64748B;white-space:nowrap">DR Account</label>' +
+      '<select onchange="updateRulePreview()" style="flex:1;padding:5px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:11.5px">' + acctOptions + '</select>' +
+      '<label style="font-size:11px;color:#64748B;white-space:nowrap">CR Account</label>' +
+      '<select onchange="updateRulePreview()" style="flex:1;padding:5px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:11.5px">' + acctOptions + '</select>' +
+      '<button onclick="this.closest(\'.builder-action-row\').remove();updateRulePreview();" style="background:none;border:none;cursor:pointer;color:#EF4444;font-size:16px">✕</button>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+      '<label style="font-size:11px;color:#64748B;white-space:nowrap">Amount Field</label>' +
+      '<select onchange="updateRulePreview()" style="flex:1;padding:5px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:11.5px">' +
+        '<option value="grossPremium">grossPremium</option>' +
+        '<option value="netPremium">netPremium</option>' +
+        '<option value="unearnedPremium">unearnedPremium</option>' +
+        '<option value="earnedPremium">earnedPremium</option>' +
+        '<option value="commission">commission</option>' +
+        '<option value="tax">tax</option>' +
+        '<option value="lossReserve">lossReserve</option>' +
+        '<option value="fees">fees</option>' +
+      '</select>' +
+      '<label style="font-size:11px;color:#64748B;white-space:nowrap">OR Formula</label>' +
+      '<input oninput="updateRulePreview()" placeholder="e.g. commission * 0.4" style="flex:1.5;padding:5px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:11.5px">' +
+      '<label style="font-size:11px;color:#64748B">Ledger</label>' +
+      '<select style="padding:5px 8px;border:1px solid #D1D5DB;border-radius:6px;font-size:11.5px"><option>GL</option><option>SUBLEDGER</option></select>' +
+    '</div>';
+  container.appendChild(div);
+}
+
+function updateRulePreview() {
+  var preview = document.getElementById('rule-preview-card');
+  if (!preview) return;
+  var name = (document.getElementById('builder-name') || {}).value || 'Untitled Rule';
+  var desc = (document.getElementById('builder-desc') || {}).value || '';
+  var priority = (document.getElementById('builder-priority') || {}).value || '50';
+  var status = (document.getElementById('builder-status') || {}).value || 'draft';
+  var condCount = (document.getElementById('builder-conditions') || document.createElement('div')).querySelectorAll('.builder-cond-row').length;
+  var actCount = (document.getElementById('builder-actions') || document.createElement('div')).querySelectorAll('.builder-action-row').length;
+  preview.innerHTML =
+    '<div style="border:1px solid #BFDBFE;border-radius:10px;padding:14px;background:#EFF6FF;">' +
+      '<div style="font-size:11px;color:#3B82F6;font-weight:600;margin-bottom:6px">RULE PREVIEW</div>' +
+      '<div style="font-weight:700;font-size:14px;margin-bottom:4px">' + name + '</div>' +
+      '<div style="font-size:12px;color:#64748B;margin-bottom:8px">' + (desc || '<em>No description</em>') + '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:4px;font-size:11px">' + status.toUpperCase() + '</span>' +
+        '<span style="background:#EFF6FF;color:#2563EB;padding:2px 8px;border-radius:4px;font-size:11px">Priority ' + priority + '</span>' +
+        '<span style="background:#F3F4F6;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px">' + condCount + ' condition(s)</span>' +
+        '<span style="background:#F3F4F6;color:#475569;padding:2px 8px;border-radius:4px;font-size:11px">' + actCount + ' action(s)</span>' +
+      '</div>' +
+    '</div>';
+}
+
+function saveRuleFromBuilder() {
+  if (!ruleStore || !window.RulesEngine) { alert('Rules engine not loaded'); return; }
+  var name = (document.getElementById('builder-name') || {}).value;
+  if (!name || !name.trim()) { alert('Rule name is required'); return; }
+
+  // Collect LOB checkboxes
+  var lobChecks = document.querySelectorAll('#builder-lob-checks input:checked');
+  var lob = lobChecks.length ? Array.from(lobChecks).map(function(c){return c.value;}) : ['*'];
+
+  // Collect tx checkboxes
+  var txChecks = document.querySelectorAll('#builder-tx-checks input:checked');
+  var tx = txChecks.length ? Array.from(txChecks).map(function(c){return c.value;}) : ['*'];
+
+  // Collect conditions
+  var conditions = [];
+  document.querySelectorAll('#builder-conditions .builder-cond-row').forEach(function(row) {
+    var sels = row.querySelectorAll('select');
+    var inp = row.querySelector('input');
+    if (sels[0] && sels[0].value && inp && inp.value) {
+      conditions.push({ field: sels[0].value, operator: sels[1].value, value: inp.value });
+    }
+  });
+
+  // Collect actions
+  var actions = [];
+  document.querySelectorAll('#builder-actions .builder-action-row').forEach(function(row, i) {
+    var sels = row.querySelectorAll('select');
+    var inputs = row.querySelectorAll('input');
+    actions.push({
+      sequence: i + 1,
+      debitAccount: (sels[0] || {}).value || '',
+      creditAccount: (sels[1] || {}).value || '',
+      amountField: (sels[2] || {}).value || 'grossPremium',
+      amountFormula: (inputs[0] || {}).value || null,
+      description: name,
+      ledger: (sels[3] || {}).value || 'GL'
+    });
+  });
+
+  var newRule = {
+    id: 'rule-' + Date.now(),
+    name: name.trim(),
+    description: (document.getElementById('builder-desc') || {}).value || '',
+    lineOfBusiness: lob,
+    transactionTypes: tx,
+    status: (document.getElementById('builder-status') || {}).value || 'draft',
+    priority: parseInt((document.getElementById('builder-priority') || {}).value || '50', 10),
+    conditions: conditions,
+    actions: actions,
+    tags: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    executionCount: 0,
+    lastExecuted: null
+  };
+
+  ruleStore.addRule(newRule);
+  renderRuleLibrary();
+  clearRuleBuilder();
+  switchSubTab('rules', 'library');
+  showToast('Rule "' + newRule.name + '" saved to library');
+}
+
+function clearRuleBuilder() {
+  ['builder-name','builder-desc'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  var cond = document.getElementById('builder-conditions');
+  if (cond) cond.innerHTML = '';
+  var act = document.getElementById('builder-actions');
+  if (act) act.innerHTML = '';
+  updateRulePreview();
+}
+
+function showToast(msg) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1E293B;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
+
+// ============================================================
+// RULE ENGINE — EXECUTION PIPELINE
+// ============================================================
+function runRuleEngine() {
+  if (!gwpcRawData) { alert('Load GWPC data first (Data Ingestion → Sources → Load Data)'); return; }
+  if (!ruleStore || !window.RulesEngine) { alert('Rules engine not loaded'); return; }
+  if (!policyEvents) policyEvents = window.InsuranceTransformation.transformAll(gwpcRawData.rows);
+
+  var steps = ['step-load','step-transform','step-execute','step-post'];
+  function setStep(i, state) {
+    var el = document.getElementById(steps[i]);
+    if (!el) return;
+    el.className = 'pipeline-step pipeline-step-' + state;
+  }
+  function resetSteps() { steps.forEach(function(_, i) { setStep(i, 'pending'); }); }
+
+  resetSteps();
+  setStep(0, 'done');
+  setStep(1, 'active');
+  var resultsEl = document.getElementById('execution-results');
+  if (resultsEl) resultsEl.innerHTML = '<div style="color:#64748B;padding:12px">Executing rules…</div>';
+
+  setTimeout(function() {
+    setStep(1, 'done');
+    setStep(2, 'active');
+    setTimeout(function() {
+      try {
+        var accounts = window.InsuranceTransformation ? window.InsuranceTransformation.INSURANCE_ACCOUNTS : {};
+        lastExecResult = window.RulesEngine.executeAllRules(policyEvents, ruleStore.rules, accounts);
+        setStep(2, 'done');
+        setStep(3, 'active');
+
+        setTimeout(function() {
+          if (subledgerStore && lastExecResult.journalEntries && lastExecResult.journalEntries.length) {
+            var postResult = subledgerStore.postJournalEntries(lastExecResult.journalEntries);
+            setStep(3, 'done');
+            var batchMsg = 'Batch ' + postResult.batchId + ': ' + postResult.postedCount + ' lines posted';
+            if (resultsEl) {
+              resultsEl.innerHTML =
+                '<div style="background:#D1FAE5;border:1px solid #6EE7B7;border-radius:8px;padding:10px 14px;margin-bottom:12px;color:#065F46;font-size:13px">✓ ' + batchMsg + '</div>' +
+                window.RulesEngine.getRuleExecutionSummary(lastExecResult);
+            }
+            refreshSubledger({});
+            showToast(batchMsg);
+          } else {
+            setStep(3, 'done');
+            if (resultsEl) resultsEl.innerHTML = window.RulesEngine.getRuleExecutionSummary(lastExecResult);
+          }
+          // Store in history
+          execHistory.unshift({
+            ts: new Date().toLocaleString(),
+            events: lastExecResult.processedEvents,
+            applied: lastExecResult.rulesApplied,
+            jes: (lastExecResult.journalEntries || []).length
+          });
+          renderExecHistory();
+        }, 400);
+      } catch(e) {
+        if (resultsEl) resultsEl.innerHTML = '<div style="color:#EF4444;padding:12px">Error: ' + e.message + '</div>';
+      }
+    }, 500);
+  }, 300);
+}
+
+function renderExecHistory() {
+  var el = document.getElementById('exec-history-table');
+  if (!el) return;
+  if (!execHistory.length) { el.innerHTML = '<div style="color:#94A3B8;padding:12px">No runs yet.</div>'; return; }
+  var rows = execHistory.map(function(h, i) {
+    return '<tr>' +
+      '<td>#' + (execHistory.length - i) + '</td>' +
+      '<td>' + h.ts + '</td>' +
+      '<td>' + h.events + '</td>' +
+      '<td>' + h.applied + '</td>' +
+      '<td>' + h.jes + '</td>' +
+      '<td><span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:4px;font-size:11px">Success</span></td>' +
+    '</tr>';
+  }).join('');
+  el.innerHTML = '<table class="data-table"><thead><tr><th>Run</th><th>Timestamp</th><th>Events</th><th>Rules Applied</th><th>JEs Generated</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+// ============================================================
+// SUBLEDGER
+// ============================================================
+function refreshSubledger(filters) {
+  if (!subledgerStore) return;
+  var rows = subledgerStore.query(filters || {});
+  var stats = subledgerStore.getStats();
+
+  // Stats bar
+  var statsEl = document.getElementById('subledger-stats');
+  if (statsEl) statsEl.innerHTML = subledgerStore.renderStatsHTML(stats);
+
+  // Journal entry table
+  var tableEl = document.getElementById('subledger-je-table');
+  if (tableEl) {
+    if (!rows.length) {
+      tableEl.innerHTML = '<div style="color:#94A3B8;padding:24px;text-align:center">No journal entries. Run the Rule Engine pipeline first.</div>';
+    } else {
+      tableEl.innerHTML = subledgerStore.renderTableHTML(rows, { maxRows: 200 });
+    }
+  }
+}
+
+function generateTrialBalance() {
+  if (!subledgerStore) return;
+  var periodSel = document.getElementById('tb-period-select');
+  var period = periodSel ? periodSel.value : null;
+  var tb = subledgerStore.getTrialBalance(period || null);
+  var el = document.getElementById('trial-balance-table');
+  if (el) el.innerHTML = subledgerStore.renderTrialBalanceHTML(tb);
+}
+
+function showSQLView() {
+  var el = document.getElementById('sql-view-code');
+  if (!el || !subledgerStore) return;
+  var sql = subledgerStore.toSQL();
+  el.textContent = sql;
+}
+
+function applySubledgerFilters() {
+  if (!subledgerStore) return;
+  var filters = {};
+  var period = (document.getElementById('sl-filter-period') || {}).value;
+  var lob    = (document.getElementById('sl-filter-lob') || {}).value;
+  var status = (document.getElementById('sl-filter-status') || {}).value;
+  var search = (document.getElementById('sl-filter-search') || {}).value;
+  if (period) filters.period = period;
+  if (lob)    filters.lineOfBusiness = lob;
+  if (status) filters.status = status;
+  if (search) filters.search = search;
+  refreshSubledger(filters);
+}
+
+function renderPeriodSummaries() {
+  var el = document.getElementById('period-summaries');
+  if (!el || !subledgerStore) return;
+  var stats = subledgerStore.getStats();
+  if (!stats.periodBreakdown || !stats.periodBreakdown.length) {
+    el.innerHTML = '<div style="color:#94A3B8;padding:12px">No data. Run pipeline first.</div>';
+    return;
+  }
+  var html = stats.periodBreakdown.map(function(p) {
+    var balanced = Math.abs(p.debits - p.credits) < 0.01;
+    return '<div style="background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:14px;min-width:200px">' +
+      '<div style="font-weight:700;font-size:15px;margin-bottom:8px">' + p.period + '</div>' +
+      '<div style="font-size:12px;color:#64748B;margin-bottom:4px">Entries: <strong>' + p.count + '</strong></div>' +
+      '<div style="font-size:12px;color:#2563EB">DR: $' + fmtNum(p.debits) + '</div>' +
+      '<div style="font-size:12px;color:#10B981">CR: $' + fmtNum(p.credits) + '</div>' +
+      '<div style="margin-top:8px">' +
+        (balanced ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:4px;font-size:11px">✓ Balanced</span>'
+                  : '<span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:4px;font-size:11px">⚠ Unbalanced</span>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+  el.innerHTML = '<div style="display:flex;gap:12px;flex-wrap:wrap">' + html + '</div>';
+}
+
+// ============================================================
+// ERP EXPORT
+// ============================================================
+function runExport() {
+  if (!subledgerStore || !window.ERPExport) { alert('Modules not loaded'); return; }
+  var format = (document.getElementById('export-format-select') || {}).value || 'standard';
+  var dateFormat = (document.getElementById('export-date-format') || {}).value || 'YYYY-MM-DD';
+  var period = (document.getElementById('export-period-filter') || {}).value || null;
+  var lob    = (document.getElementById('export-lob-filter') || {}).value || null;
+
+  var filters = {};
+  if (period) filters.period = period;
+  if (lob)    filters.lineOfBusiness = lob;
+
+  var result = window.ERPExport.exportSubledger(subledgerStore, {
+    format: format,
+    dateFormat: dateFormat,
+    filters: filters
+  });
+
+  var manifestEl = document.getElementById('export-manifest');
+  if (manifestEl && result && result.manifest) {
+    var m = result.manifest;
+    manifestEl.innerHTML =
+      '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;font-size:12px">' +
+        '<div style="font-weight:600;margin-bottom:8px;color:#065F46">Export Complete — ' + m.exportId + '</div>' +
+        '<div style="display:flex;gap:16px;flex-wrap:wrap">' +
+          '<span>Format: <strong>' + m.format + '</strong></span>' +
+          '<span>Records: <strong>' + m.recordCount + '</strong></span>' +
+          '<span>Debits: <strong>$' + fmtNum(m.totalDebits) + '</strong></span>' +
+          '<span>Credits: <strong>$' + fmtNum(m.totalCredits) + '</strong></span>' +
+          '<span>Balanced: <strong>' + (m.balanced ? '✓ Yes' : '⚠ No') + '</strong></span>' +
+          '<span>Checksum: <strong>' + m.checksum + '</strong></span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  if (result && result.validation && !result.validation.valid) {
+    showToast('Export validation warnings: ' + result.validation.warnings.join('; '));
+  }
+}
+
+function validateCurrentExport() {
+  if (!subledgerStore || !window.ERPExport) { alert('Modules not loaded'); return; }
+  var rows = subledgerStore.query({});
+  var v = window.ERPExport.validateExport(rows);
+  var el = document.getElementById('export-validation-result');
+  if (!el) return;
+  var color = v.valid ? '#065F46' : '#991B1B';
+  var bg = v.valid ? '#F0FDF4' : '#FEF2F2';
+  var border = v.valid ? '#BBF7D0' : '#FECACA';
+  var html = '<div style="background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;padding:12px;font-size:12px;color:' + color + '">' +
+    '<div style="font-weight:600;margin-bottom:6px">' + (v.valid ? '✓ Export is valid' : '⚠ Validation issues found') + '</div>';
+  if (v.errors.length) html += '<div style="margin-bottom:4px"><strong>Errors:</strong> ' + v.errors.join('; ') + '</div>';
+  if (v.warnings.length) html += '<div><strong>Warnings:</strong> ' + v.warnings.join('; ') + '</div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
 </script>
 </body>
 </html>
